@@ -1,0 +1,6 @@
+models/
+results/
+remove-only/
+__pycache__/
+*.py[cod]
+*$py.class
