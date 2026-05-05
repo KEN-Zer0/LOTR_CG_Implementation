@@ -1,13 +1,7 @@
-class Card():
-    def __init__(self, Name):
-        self.Name = Name
+from src.cards import BaseCard
 
-    def setName(self, Name):
-        self.Name = Name
+Gandalf = BaseCard('Gandalf')
+Thorn = BaseCard('Thorn')
 
-    def getName(self):
-        return self.Name
-
-Gandalf = Card('Gandalf')
-
-print(Gandalf.getName())
+print(Gandalf.name)
+print(Thorn.name)
