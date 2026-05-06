@@ -1,1 +1,1 @@
-from .base_card import BaseCard
+from src.cards.base_card import BaseCard
