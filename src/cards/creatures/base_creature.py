@@ -1,4 +1,4 @@
-from cards.base import BaseCard
+from src.cards.base_card import BaseCard
 
 class Creature(BaseCard):
     def __init__(self, name, attack, defense, hitpoints):
