@@ -1,4 +1,4 @@
-from src.cards.creature.base_creature import Creature
+from src.cards.creatures.base_creature import Creature
 
 class PlayerCreature(Creature):
     def __init__(self, name, attack, defense, hitpoints, willpower, sphere):
