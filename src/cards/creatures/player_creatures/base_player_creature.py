@@ -2,8 +2,23 @@ from src.cards.creatures.base_creature import Creature
 
 
 class PlayerCreature(Creature):
-    def __init__(self, name, attack, defense, hitMaxPoints, hitPoints, willpower, sphere):
-        super(PlayerCreature, self).__init__(name, attack, defense, hitMaxPoints, hitPoints)
+    def __init__(
+            self,
+            name,
+            attack,
+            defense,
+            hitMaxPoints,
+            hitPoints,
+            willpower,
+            sphere
+    ):
+        super().__init__(
+            name,
+            attack,
+            defense,
+            hitMaxPoints,
+            hitPoints)
+
         self._willpower = willpower
         self._sphere = sphere
         self._tapped = False

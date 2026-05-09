@@ -1,9 +1,28 @@
-from src.cards.creatures.player_creature import PlayerCreature
+from src.cards.creatures.player_creatures import PlayerCreature
 
 
 class Hero(PlayerCreature):
-    def __init__(self, name, attack, defense, hitMaxPoints, hitPoints, willpower, sphere, threat):
-        super(Hero, self).__init__(name, attack, defense, hitMaxPoints, hitPoints, willpower, sphere)
+    def __init__(
+            self,
+            name,
+            attack,
+            defense,
+            hitMaxPoints,
+            hitPoints,
+            willpower,
+            sphere,
+            threat
+    ):
+        super().__init__(
+            name,
+            attack,
+            defense,
+            hitMaxPoints,
+            hitPoints,
+            willpower,
+            sphere
+        )
+
         self._threat = threat
         self._resourcePool = 0
 

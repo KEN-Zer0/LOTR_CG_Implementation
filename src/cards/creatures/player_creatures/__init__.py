@@ -1,4 +1,3 @@
-from src.cards.creatures.player_creatures import PlayerCreature
-from src.cards.creatures.ally import Ally
-from src.cards.creatures.hero import Hero
-
+from src.cards.creatures.player_creatures.base_player_creature import PlayerCreature
+from src.cards.creatures.player_creatures.ally import Ally
+from src.cards.creatures.player_creatures.hero import Hero

@@ -2,8 +2,14 @@ from src.cards.base_card import BaseCard
 
 
 class Land(BaseCard):
-    def __init__(self, name, threat, points):
-        super(Land, self).__init__(name)
+    def __init__(
+            self,
+            name,
+            threat,
+            points
+    ):
+        super().__init__(name)
+
         self._threat = threat
         self._points = points
 

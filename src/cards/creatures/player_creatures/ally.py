@@ -1,9 +1,28 @@
-from src.cards.creatures.player_creature import PlayerCreature
+from src.cards.creatures.player_creatures import PlayerCreature
 
 
 class Ally(PlayerCreature):
-    def __init__(self, name, attack, defense, hitMaxPoints, hitPoints, willpower, sphere, cost):
-        super(Ally, self).__init__(name, attack, defense, hitMaxPoints, hitPoints, willpower, sphere)
+    def __init__(
+            self,
+            name,
+            attack,
+            defense,
+            hit_max_points,
+            hit_points,
+            willpower,
+            sphere,
+            cost
+    ):
+        super().__init__(
+            name,
+            attack,
+            defense,
+            hit_max_points,
+            hit_points,
+            willpower,
+            sphere
+        )
+
         self._cost = cost
 
     @property

@@ -2,8 +2,14 @@ from src.cards.base_card import BaseCard
 
 
 class Quest(BaseCard):
-    def __init__(self, name, scenario, points):
-        super(Quest, self).__init__(name)
+    def __init__(
+            self,
+            name,
+            scenario,
+            points
+    ):
+        super().__init__(name)
+
         self._scenario = scenario
         self._points = points
 

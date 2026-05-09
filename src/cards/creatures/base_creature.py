@@ -1,8 +1,17 @@
 from src.cards.base_card import BaseCard
 
+
 class Creature(BaseCard):
-    def __init__(self, name, attack, defense, hitMaxPoints, hitPoints):
-        super(Creature, self).__init__(name)
+    def __init__(
+            self,
+            name,
+            attack,
+            defense,
+            hitMaxPoints,
+            hitPoints
+    ):
+        super().__init__(name)
+
         self._attack = attack
         self._defense = defense
         self._hitMaxPoints = hitMaxPoints
