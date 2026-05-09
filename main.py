@@ -1,13 +1,27 @@
-class Card():
-    def __init__(self, Name):
-        self.Name = Name
+from src.cards import BaseCard
+from src.cards.creatures import Creature
 
-    def setName(self, Name):
-        self.Name = Name
+from config.cards_dict import *
 
-    def getName(self):
-        return self.Name
+Gandalf = BaseCard('Gandalf')
+Thorn = BaseCard('Thorn')
 
-Gandalf = Card('Gandalf')
+# print(Gandalf.name)
+# print(Thorn.name)
 
-print(Gandalf.getName())
+Orc = Creature(Enemys.Dol_Guldur_Orcs, 1, 2, 3)
+print(
+    Orc.name,
+    Orc.attack,
+    Orc.defense,
+    Orc.hitPoints
+)
+
+Orc.changeHitPoints(-3)
+
+print(
+    Orc.name,
+    Orc.attack,
+    Orc.defense,
+    Orc.hitPoints
+)
