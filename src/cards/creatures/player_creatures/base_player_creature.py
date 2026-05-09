@@ -7,8 +7,7 @@ class PlayerCreature(Creature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints,
+            max_hit_points,
             willpower,
             sphere
     ):
@@ -16,8 +15,8 @@ class PlayerCreature(Creature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints)
+            max_hit_points
+        )
 
         self._willpower = willpower
         self._sphere = sphere
@@ -35,11 +34,11 @@ class PlayerCreature(Creature):
     def tapped(self):
         return self._tapped
 
-    def isTapped(self):
-        return self.tapped
+    def is_tapped(self):
+        return self._tapped
 
     def tap(self):
         self._tapped = True
 
-    def unTap(self):
+    def untap(self):
         self._tapped = False

@@ -7,8 +7,7 @@ class Enemy(Creature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints,
+            max_hit_points,
             engagement,
             threat
     ):
@@ -16,8 +15,7 @@ class Enemy(Creature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints
+            max_hit_points
         )
 
         self._engagement = engagement
@@ -32,14 +30,11 @@ class Enemy(Creature):
         return self._threat
 
     def copy(self):
-        newEnemy = Enemy(
+        return Enemy(
             self.name,
             self.attack,
             self.defense,
-            self.hitMaxPoints,
-            self.hitPoints,
+            self.max_hit_points,
             self.engagement,
             self.threat
         )
-
-        return newEnemy

@@ -7,8 +7,7 @@ class Ally(PlayerCreature):
             name,
             attack,
             defense,
-            hit_max_points,
-            hit_points,
+            max_hit_points,
             willpower,
             sphere,
             cost
@@ -17,8 +16,7 @@ class Ally(PlayerCreature):
             name,
             attack,
             defense,
-            hit_max_points,
-            hit_points,
+            max_hit_points,
             willpower,
             sphere
         )
@@ -30,15 +28,15 @@ class Ally(PlayerCreature):
         return self._cost
 
     def copy(self):
-        newAlly = Ally(
+        new_ally = Ally(
             self.name,
             self.attack,
             self.defense,
-            self.hitMaxPoints,
-            self.hitPoints,
+            self.max_hit_points,
             self.willpower,
             self.sphere,
             self.cost
         )
 
-        return newAlly
+        new_ally._hit_points = self.hit_points
+        return new_ally

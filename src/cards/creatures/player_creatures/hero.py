@@ -7,8 +7,7 @@ class Hero(PlayerCreature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints,
+            max_hit_points,
             willpower,
             sphere,
             threat
@@ -17,40 +16,41 @@ class Hero(PlayerCreature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints,
+            max_hit_points,
             willpower,
             sphere
         )
 
         self._threat = threat
-        self._resourcePool = 0
+        self._resource_pool = 0
 
     @property
     def threat(self):
         return self._threat
 
     @property
-    def resourcePool(self):
-        return self._resourcePool
+    def resource_pool(self):
+        return self._resource_pool
 
-    def changeResourcePool(self, deltaResourcePool):
-        self._changeResourcePool += deltaResourcePool
+    def change_resource_pool(self, delta):
+        self._resource_pool += delta
 
-    def addResourceToken(self):
-        self._resourcePool += 1
+        if self._resource_pool < 0:
+            self._resource_pool = 0
+
+    def add_resource_token(self):
+        self._resource_pool += 1
 
     def copy(self):
-        newHero = Hero(
+        new_hero = Hero(
             self.name,
             self.attack,
             self.defense,
-            self.hitMaxPoints,
-            self.hitPoints,
+            self.max_hit_points,
             self.willpower,
             self.sphere,
             self.threat
         )
 
-        newHero._resourcePool = self.resourcePool
-        return newHero
+        new_hero._resource_pool = self._resource_pool
+        return new_hero
