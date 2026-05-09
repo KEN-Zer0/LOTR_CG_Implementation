@@ -1,5 +1,6 @@
 from src.cards.creatures.base_creature import Creature
 
+
 class Enemy(Creature):
     def __init__(self, name, attack, defense, hitMaxPoints, hitPoints, engagement, threat):
         super(Enemy, self).__init__(name, attack, defense, hitMaxPoints, hitPoints)
@@ -15,7 +16,7 @@ class Enemy(Creature):
         return self._threat
 
     def copy(self):
-        return Enemy(
+        newEnemy = Enemy(
             self.name,
             self.attack,
             self.defense,
@@ -24,3 +25,5 @@ class Enemy(Creature):
             self.engagement,
             self.threat
         )
+
+        return newEnemy

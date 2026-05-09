@@ -1,5 +1,6 @@
 from src.cards.base_card import BaseCard
 
+
 class Quest(BaseCard):
     def __init__(self, name, scenario, points):
         super(Quest, self).__init__(name)
@@ -18,5 +19,10 @@ class Quest(BaseCard):
         self._hitPoints += deltaPoints
 
     def copy(self):
-        newQuest = Quest(self.name, self.scenario, self.points)
+        newQuest = Quest(
+            self.name,
+            self.scenario,
+            self.points
+        )
+
         return newQuest
