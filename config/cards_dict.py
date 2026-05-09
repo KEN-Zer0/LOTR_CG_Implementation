@@ -1,4 +1,4 @@
-from .cards_list import *
+from cards_list import *
 
 Heroes_dict = {
     Heroes.Eowyn: 'Eowyn',
@@ -35,11 +35,11 @@ Enemys_dict = {
     Enemys.Ungoliants_Spawn: 'Ungoliants_Spawn',
 }
 
-Land_dict = {
-    Land.Great_Forest_Web: 'Great_Forest_Web',
-    Land.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
-    Land.Necromancers_Pass: 'Necromancers_Pass',
-    Land.Enchanted_Stream: 'Enchanted_Stream',
-    Land.Old_Forest_Road: 'Old_Forest_Road',
-    Land.Forest_Gate: 'Forest_Gate',
+Lands_dict = {
+    Lands.Great_Forest_Web: 'Great_Forest_Web',
+    Lands.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
+    Lands.Necromancers_Pass: 'Necromancers_Pass',
+    Lands.Enchanted_Stream: 'Enchanted_Stream',
+    Lands.Old_Forest_Road: 'Old_Forest_Road',
+    Lands.Forest_Gate: 'Forest_Gate',
 }

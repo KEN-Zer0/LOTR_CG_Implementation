@@ -15,5 +15,12 @@ class Enemy(Creature):
         return self._threat
 
     def copy(self):
-        return Enemy(self.name, self.attack, self.defense, self.hitpoints, self.engagement, self.threat)
-
+        return Enemy(
+            self.name,
+            self.attack,
+            self.defense,
+            self.hitMaxPoints,
+            self.hitPoints,
+            self.engagement,
+            self.threat
+        )
