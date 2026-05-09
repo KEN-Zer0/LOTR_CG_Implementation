@@ -1,26 +1,26 @@
 from src.cards.base_card import BaseCard
 
 class Creature(BaseCard):
-    def __init__(self, name, attack, defense, hitpoints):
+    def __init__(self, name, attack, defense, hitPoints):
         super(Creature, self).__init__(name)
-        self.attack = attack
-        self.defense = defense
-        self.hitpoints = hitpoints
+        self._attack = attack
+        self._defense = defense
+        self._hitPoints = hitPoints
 
-    def getAttack(self):
-        return self.attack
+    @property
+    def attack(self):
+        return self._attack
 
-    def getDefense(self):
-        return self.defense
+    @property
+    def defense(self):
+        return self._defense
 
-    def getHitpoints(self):
-        return self.hitpoints
-
-    # def setHitpoints(self, hitpoints):
-    #     self.hitpoints = hitpoints
+    @property
+    def hitPoints(self):
+        return self._hitPoints
 
     def isDead(self):
-        return self.getHitpoints() <= 0
+        return self.hitPoints <= 0
 
-    def takeDamage(self, damage):
-        self.hitpoints -= damage
+    def changeHitPoints(self, deltaHP):
+        self._hitPoints += deltaHP
