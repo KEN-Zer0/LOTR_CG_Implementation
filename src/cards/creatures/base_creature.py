@@ -1,10 +1,11 @@
 from src.cards.base_card import BaseCard
 
 class Creature(BaseCard):
-    def __init__(self, name, attack, defense, hitPoints):
+    def __init__(self, name, attack, defense, hitMaxPoints, hitPoints):
         super(Creature, self).__init__(name)
         self._attack = attack
         self._defense = defense
+        self._hitMaxPoints = hitMaxPoints
         self._hitPoints = hitPoints
 
     @property
@@ -14,6 +15,10 @@ class Creature(BaseCard):
     @property
     def defense(self):
         return self._defense
+
+    @property
+    def hitMaxPoints(self):
+        return self._hitMaxPoints
 
     @property
     def hitPoints(self):
