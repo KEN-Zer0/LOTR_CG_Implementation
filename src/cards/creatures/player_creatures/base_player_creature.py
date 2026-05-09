@@ -1,7 +1,7 @@
 from src.cards.creatures.base_creature import Creature
 
 class PlayerCreature(Creature):
-    def __init__(self, name, attack, defense, hitpoints, willpower, sphere):
+    def __init__(self, name, attack, defense,hitMaxPoints, hitPoints, willpower, sphere):
         super(PlayerCreature, self).__init__(name, attack, defense, hitpoints)
         self.willpower = willpower
         self.sphere = sphere
