@@ -7,3 +7,4 @@ class BaseCard:
         if not self._name:
             return "Name empty"
         return self._name
+    
