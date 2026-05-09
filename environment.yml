@@ -1,0 +1,6 @@
+name: lotr-cg-implementation
+channels:
+  - defaults
+dependencies:
+  - python=3.11.15
+prefix: /home/marcin/miniconda3/envs/lotr-cg-implementation
