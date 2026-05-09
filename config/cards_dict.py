@@ -1,14 +1,14 @@
 from cards_list import *
 
 Heroes_dict = {
-    Heroes.Eowyn: 'Heroes',
+    Heroes.Eowyn: 'Eowyn',
     Heroes.Eleaonr: 'Eleaonr',
     Heroes.Thalin: 'Thalin',
 }
 
 Allies_dict = {
     Allies.Gandalf: 'Gandalf',
-    Allies.Wandering_Took: 'Allies',
+    Allies.Wandering_Took: 'Wandering_Took',
     Allies.Lorien_Guide: 'Lorien_Guide',
     Allies.Northern_Tracker: 'Northern_Tracker',
     Allies.Veteran_Axehand: 'Veteran_Axehand',
