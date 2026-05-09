@@ -1,4 +1,4 @@
-from .cards_list import *
+from cards_list import *
 
 Heroes_dict = {
     Heroes.Eowyn: 'Eowyn',
