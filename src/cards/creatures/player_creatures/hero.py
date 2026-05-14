@@ -9,7 +9,7 @@ class Hero(PlayerCreature):
             defense,
             max_hit_points,
             willpower,
-            sphere,
+            sphere_of_influence,
             threat
     ):
         super().__init__(
@@ -18,7 +18,7 @@ class Hero(PlayerCreature):
             defense,
             max_hit_points,
             willpower,
-            sphere
+            sphere_of_influence
         )
 
         self._threat = threat
@@ -48,7 +48,7 @@ class Hero(PlayerCreature):
             self.defense,
             self.max_hit_points,
             self.willpower,
-            self.sphere,
+            self.sphere_of_influence,
             self.threat
         )
 

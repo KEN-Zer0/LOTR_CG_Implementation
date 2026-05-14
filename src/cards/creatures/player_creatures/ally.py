@@ -9,7 +9,7 @@ class Ally(PlayerCreature):
             defense,
             max_hit_points,
             willpower,
-            sphere,
+            sphere_of_influence,
             cost
     ):
         super().__init__(
@@ -18,7 +18,7 @@ class Ally(PlayerCreature):
             defense,
             max_hit_points,
             willpower,
-            sphere
+            sphere_of_influence
         )
 
         self._cost = cost
@@ -34,7 +34,7 @@ class Ally(PlayerCreature):
             self.defense,
             self.max_hit_points,
             self.willpower,
-            self.sphere,
+            self.sphere_of_influence,
             self.cost
         )
 
