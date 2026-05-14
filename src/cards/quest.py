@@ -6,29 +6,29 @@ class Quest(BaseCard):
             self,
             name,
             scenario,
-            points
+            quest_points
     ):
         super().__init__(name)
 
         self._scenario = scenario
-        self._points = points
+        self._points = quest_points
 
     @property
     def scenario(self):
         return self._scenario
 
     @property
-    def points(self):
+    def quest_points(self):
         return self._points
 
-    def changePoints(self, deltaPoints):
+    def change_points(self, deltaPoints):
         self._hitPoints += deltaPoints
 
     def copy(self):
         newQuest = Quest(
             self.name,
             self.scenario,
-            self.points
+            self.quest_points
         )
 
         return newQuest

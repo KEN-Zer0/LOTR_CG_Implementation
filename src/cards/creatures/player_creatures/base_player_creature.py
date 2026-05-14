@@ -7,39 +7,38 @@ class PlayerCreature(Creature):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints,
+            max_hit_points,
             willpower,
-            sphere
+            sphere_of_influence
     ):
         super().__init__(
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints)
+            max_hit_points
+        )
 
         self._willpower = willpower
-        self._sphere = sphere
-        self._tapped = False
+        self._sphere_of_influence = sphere_of_influence
+        self._exhausted = False
 
     @property
     def willpower(self):
         return self._willpower
 
     @property
-    def sphere(self):
-        return self._sphere
+    def sphere_of_influence(self):
+        return self._sphere_of_influence
 
     @property
-    def tapped(self):
-        return self._tapped
+    def exhausted(self):
+        return self._exhausted
 
-    def isTapped(self):
-        return self.tapped
+    def is_exhausted(self):
+        return self._exhausted
 
     def tap(self):
-        self._tapped = True
+        self._exhausted = True
 
-    def unTap(self):
-        self._tapped = False
+    def untap(self):
+        self._exhausted = False
