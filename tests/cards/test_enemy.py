@@ -7,8 +7,7 @@ def test_enemy_initialization():
         name="Goblin",
         attack=2,
         defense=1,
-        hitMaxPoints=5,
-        hitPoints=5,
+        max_hit_points=5,
         engagement=10,
         threat=3
     )
@@ -22,7 +21,7 @@ def test_enemy_initialization():
 
 def test_enemy_properties():
     enemy = Enemy(
-        "Orc", 3, 2, 8, 8, engagement=15, threat=4
+        "Orc", 3, 2, 8, engagement=15, threat=4
     )
 
     assert enemy.engagement == 15
@@ -30,10 +29,10 @@ def test_enemy_properties():
 
 
 def test_enemy_copy_creates_independent_object():
-    enemy = Enemy("Troll", 5, 4, 10, 10, engagement=20, threat=6)
+    enemy = Enemy("Troll", 5, 4, 10, engagement=20, threat=6)
 
     enemy_copy = enemy.copy()
 
     assert enemy_copy is not enemy
     assert enemy_copy.name == enemy.name
-    assert enemy_copy.hitPoints == enemy.hitPoints
+    assert enemy_copy.hit_points == enemy.hit_points

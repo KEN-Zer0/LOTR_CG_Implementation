@@ -7,15 +7,14 @@ class Creature(BaseCard):
             name,
             attack,
             defense,
-            hitMaxPoints,
-            hitPoints
+            max_hit_points
     ):
         super().__init__(name)
 
         self._attack = attack
         self._defense = defense
-        self._hitMaxPoints = hitMaxPoints
-        self._hitPoints = hitPoints
+        self._max_hit_points = max_hit_points
+        self._hit_points = max_hit_points
 
     @property
     def attack(self):
@@ -26,15 +25,21 @@ class Creature(BaseCard):
         return self._defense
 
     @property
-    def hitMaxPoints(self):
-        return self._hitMaxPoints
+    def max_hit_points(self):
+        return self._max_hit_points
 
     @property
-    def hitPoints(self):
-        return self._hitPoints
+    def hit_points(self):
+        return self._hit_points
 
-    def isDead(self):
-        return self.hitPoints <= 0
+    def is_dead(self):
+        return self._hit_points <= 0
 
-    def changeHitPoints(self, deltaHP):
-        self._hitPoints += deltaHP
+    def change_hp(self, delta_hp):
+        self._hit_points += delta_hp
+
+        if self._hit_points > self._max_hit_points:
+            self._hit_points = self._max_hit_points
+
+        if self._hit_points < 0:
+            self._hit_points = 0
