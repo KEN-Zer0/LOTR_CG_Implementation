@@ -1,4 +1,4 @@
-from src.cards.creatures.player_creatures import Hero
+from src.cards import Hero
 
 gandalf = Hero("Gandalf", 1, 2, 3, 4, 5, 6)
 
@@ -10,7 +10,7 @@ def printHero(hero):
         hero.max_hit_points,
         hero.hit_points,
         hero.willpower,
-        hero.sphere,
+        hero.sphere_of_influence,
         hero.threat
     )
 
