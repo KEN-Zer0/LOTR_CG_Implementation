@@ -6,7 +6,7 @@ from enum import Enum, unique
 @unique
 class Heroes(Enum):
     Eowyn = 1
-    Eleaonr = 2
+    Eleanor = 2
     Thalin = 3
 
 
@@ -50,3 +50,15 @@ class Lands(Enum):
     Enchanted_Stream = 4
     Old_Forest_Road = 5
     Forest_Gate = 6
+
+
+@unique
+class Sphere(Enum):
+    Spirit = 1
+    Tactics = 2
+    Neutral = 3
+
+
+@unique
+class Scenario(Enum):
+    Passage_through_Mirkwood = 1

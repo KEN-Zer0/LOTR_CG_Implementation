@@ -2,7 +2,7 @@ from .cards_list import *
 
 Heroes_dict = {
     Heroes.Eowyn: 'Eowyn',
-    Heroes.Eleaonr: 'Eleaonr',
+    Heroes.Eleanor: 'Eleanor',
     Heroes.Thalin: 'Thalin',
 }
 
