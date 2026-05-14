@@ -6,7 +6,7 @@ from enum import Enum, unique
 @unique
 class Heroes(Enum):
     Eowyn = 1
-    Eleaonr = 2
+    Eleanor = 2
     Thalin = 3
 
 
