@@ -23,16 +23,16 @@ Quests_dict = {
     Quests.Beorns_Path: 'Beorns_Path',
 }
 
-Enemys_dict = {
-    Enemys.Dol_Guldur_Orcs: 'Dol_Guldur_Orcs',
-    Enemys.Chieftan_Ufthak: 'Chieftan_Ufthak',
-    Enemys.Dol_Guldur_Beastmaster: 'Dol_Guldur_Beastmaster',
-    Enemys.Forest_Spider: 'Forest_Spider',
-    Enemys.East_Bight_Patrol: 'East_Bight_Patrol',
-    Enemys.Black_Forest_Bats: 'Black_Forest_Bats',
-    Enemys.King_Spider: 'King_Spider',
-    Enemys.Hummerhorns: 'Hummerhorns',
-    Enemys.Ungoliants_Spawn: 'Ungoliants_Spawn',
+Enemies_dict = {
+    Enemies.Dol_Guldur_Orcs: 'Dol_Guldur_Orcs',
+    Enemies.Chieftan_Ufthak: 'Chieftan_Ufthak',
+    Enemies.Dol_Guldur_Beastmaster: 'Dol_Guldur_Beastmaster',
+    Enemies.Forest_Spider: 'Forest_Spider',
+    Enemies.East_Bight_Patrol: 'East_Bight_Patrol',
+    Enemies.Black_Forest_Bats: 'Black_Forest_Bats',
+    Enemies.King_Spider: 'King_Spider',
+    Enemies.Hummerhorns: 'Hummerhorns',
+    Enemies.Ungoliants_Spawn: 'Ungoliants_Spawn',
 }
 
 Lands_dict = {

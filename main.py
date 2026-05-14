@@ -1,20 +1,22 @@
-from src.cards import Hero
+from src.table import Table
+from src.cards import *
 
-gandalf = Hero("Gandalf", 1, 2, 3, 4, 5, 6)
 
-def printHero(hero):
-    print(
-        hero.name,
-        hero.attack,
-        hero.defense,
-        hero.max_hit_points,
-        hero.hit_points,
-        hero.willpower,
-        hero.sphere_of_influence,
-        hero.threat
-    )
+table = Table()
 
-printHero(gandalf)
+# for quest in table.quest_deck:
+#     print(quest.name)
+print("Player Deck:")
+for ally in table.player_deck:
+    print(ally.name)
 
-gandalf.change_hp(-3)
-printHero(gandalf)
+# for hero in table.player_heros:
+#     print(hero.name)
+print("\nEncounter Deck:")
+for enemy in table.encounter_deck:
+    if isinstance(enemy, Land):
+        print("Location")
+    else:
+        print(enemy.name)
+
+print(table.table_threat)

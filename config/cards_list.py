@@ -30,7 +30,7 @@ class Quests(Enum):
 
 
 @unique
-class Enemys(Enum):
+class Enemies(Enum):
     Dol_Guldur_Orcs = 1
     Chieftan_Ufthak = 2
     Dol_Guldur_Beastmaster = 3
