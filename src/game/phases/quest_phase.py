@@ -1,6 +1,6 @@
 from phases import Phase
 
-class PlanningPhase(Phase):
+class QuestPhase(Phase):
 
     def executePhase(self):
-        pass
+        super().executePhase()

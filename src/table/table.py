@@ -25,6 +25,7 @@ class Table:
         self.player_heros = all_cards_deck.hero_pool.copy()
         self.encounter_deck = all_cards_deck.encounter_deck.copy()
 
+        self.player_hand = [] # zaciągnąć z configa początkową rękę
         self.calculate_table_threat()
         self.shuffle_deck()
 
