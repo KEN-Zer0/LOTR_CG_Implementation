@@ -1,9 +1,10 @@
 from src.cards import BaseCard
+from config import *
 
 
 def test_card_name():
-    gandalf = BaseCard('Gandalf')
-    thorn = BaseCard('Thorn')
+    gandalf = BaseCard(Allies.Gandalf)
+    eleanor = BaseCard(Heroes.Eleanor)
 
-    assert gandalf.name == 'Gandalf'
-    assert thorn.name == 'Thorn'
+    assert Allies_dict[gandalf.name] == 'Gandalf'
+    assert Allies_dict[eleanor.name] == 'Eleanor'
