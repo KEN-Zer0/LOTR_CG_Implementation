@@ -1,4 +1,4 @@
-from game.phases import *
+from phases import Phase
 
 class PlanningPhase(Phase):
 

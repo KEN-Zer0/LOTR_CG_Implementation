@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 
 
-class BaseCard(ABC):
+# class BaseCard(ABC):
+class BaseCard:
     def __init__(self, name):
         self._name = name
 
 
     @property
-    @abstractmethod
+    # @abstractmethod
     def name(self):
         if not self._name:
             return "Name empty"

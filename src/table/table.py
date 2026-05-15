@@ -11,7 +11,7 @@ class Table:
     player_deck: list[Ally]
     player_heros: list[Hero]
     player_hand: list[Ally]
-    player_hand
+    # player_hand
     # 2 list for def and atk?
     player_engagement: list[Hero, Ally]
 
