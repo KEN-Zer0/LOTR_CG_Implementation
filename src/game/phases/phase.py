@@ -11,4 +11,4 @@ class Phase(ABC):
 
     @abstractmethod
     def executePhase(self):
-        pass
+        self._table.check_lose_condition()

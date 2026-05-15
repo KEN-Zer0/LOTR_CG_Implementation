@@ -1,4 +1,3 @@
-from src.table import Table
 from .phase import Phase
 
 
