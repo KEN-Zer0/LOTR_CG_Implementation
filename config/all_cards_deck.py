@@ -7,6 +7,12 @@ from src.cards import *
 # encounter_deck=[] # Enemy, location (land) , trachery*, objective*
 # quest_deck=[]  # Quest
 
+### TODO:
+# Divide each deck into a separate file
+# Separate Enums, lists, dictionaries
+# Make some easy to use system for changing decks,
+# need to have duplicates related utilities
+
 hero_pool = [
     Hero(Heroes.Eowyn, 1, 1, 3, 4, Sphere.Spirit, 9),
     Hero(Heroes.Eleanor, 1, 2, 3, 1, Sphere.Spirit, 7),
