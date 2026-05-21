@@ -2,6 +2,29 @@ from src.cards.base_card import BaseCard
 
 
 class Land(BaseCard):
+    """
+    Klasa obszarów
+
+    Parameters
+    ----------
+    name : enum
+        enum na nazwę karty
+
+    Attributes
+    ----------
+    name : enum
+        enum na nazwę karty
+
+    Methods
+    -------
+    name()
+        Zwraca name.
+
+    Notes
+    _____
+    Dziedziczy wszystkie parametry z ``BaseCard``.
+
+    """
     def __init__(
             self,
             name,
