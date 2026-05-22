@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 
 class BaseCard(ABC):
@@ -7,7 +7,6 @@ class BaseCard(ABC):
 
 
     @property
-    @abstractmethod
     def name(self):
         if not self._name:
             return "Name empty"

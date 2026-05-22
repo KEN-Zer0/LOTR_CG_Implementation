@@ -1,0 +1,1 @@
+LOSING_THREAT = 50

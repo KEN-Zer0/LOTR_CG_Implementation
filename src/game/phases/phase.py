@@ -4,11 +4,11 @@ from src.table import Table
 
 
 class Phase(ABC):
-    _table: Table
+    table: Table
 
     def __init__(self, table: Table):
-        self._table = table
+        self.table = table
 
     @abstractmethod
-    def executePhase(self):
-        self._table.check_lose_condition()
+    def execute(self):
+        pass

@@ -44,4 +44,4 @@ class PlayerCreature(Creature):
         self._exhausted = False
 
     def is_alive(self):
-        return self.hit_points() >= 0
+        return self.hit_points >= 0
