@@ -1,5 +1,5 @@
 from .phase import Phase
 
 
-class PlanningPhase(Phase):
+class QuestPhase(Phase):
     pass

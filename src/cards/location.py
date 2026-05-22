@@ -1,7 +1,7 @@
 from src.cards.base_card import BaseCard
 
 
-class Land(BaseCard):
+class Location(BaseCard):
     def __init__(
             self,
             name,
