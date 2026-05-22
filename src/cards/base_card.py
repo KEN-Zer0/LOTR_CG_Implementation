@@ -2,7 +2,7 @@ from abc import ABC
 
 
 class BaseCard(ABC):
-"""
+    """
     Klasa bazowa wszystkich kart
 
     Parameters
