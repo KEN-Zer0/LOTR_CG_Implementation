@@ -1,136 +1,129 @@
-from src.cards import *
-from config import *
-from config.constants import LOSING_THREAT
 import random
+
+from config import all_cards_deck
+from config.constants import GameConstants, PlayerEngagementType
+
+from src.cards import (
+    Hero,
+    Ally,
+    Enemy,
+    Quest,
+    Location
+)
 
 
 class Table:
-    table_threat: int = 0
-
-    quest_deck: list[Quest] = all_cards_deck.quest_deck.copy()
-    active_travel_location: Location | None = None
-
-    player_deck: list[Ally] = all_cards_deck.player_deck.copy()
-    player_heroes: list[Hero] = all_cards_deck.hero_pool.copy()
-    player_hand: list[Ally]##!
-    player_board: list[Ally]##!
-
-    encounter_staging: list[Enemy]##!
-
-    # make to dict in future
-    questing: list[Ally, Hero] = []
-    attacking: list[Ally, Hero] = []
-    defending: list[Ally, Hero] = []
-    player_engagement = [
-        questing,
-        attacking,
-        defending
-    ]
-
-    encounter_deck: list[Enemy] = all_cards_deck.encounter_deck.copy()
-    encounter_staging: list[Enemy]
-    encounter_engagement: list[Enemy]
 
     def __init__(self):
-        # self.quest_deck = all_cards_deck.quest_deck.copy()
-        # self.player_deck = all_cards_deck.player_deck.copy()
-        # self.player_heroes = all_cards_deck.hero_pool.copy()
-        # self.encounter_deck = all_cards_deck.encounter_deck.copy()
-        self.player_hand = []
 
-        self.encounter_staging = []
-        self.encounter_engagement = []
+        self.table_threat = 0
 
-        for _ in range(6):
-            self.draw_card()
+        # QUEST
+
+        self.quest_deck: list[Quest] = (
+            all_cards_deck.quest_deck.copy()
+        )
+
+        self.active_travel_location: Location | None = None
+
+        # PLAYER
+
+        self.player_deck: list[Ally] = (
+            all_cards_deck.player_deck.copy()
+        )
+
+        self.player_heroes: list[Hero] = (
+            all_cards_deck.hero_pool.copy()
+        )
+
+        self.player_hand: list[Ally] = []
+
+        self.player_board: list[Ally] = []
+
+        # QUESTING / COMBAT
+
+        self.questing: list[Hero | Ally] = []
+
+        self.attacking: list[Hero | Ally] = []
+
+        self.defending: list[Hero | Ally] = []
+
+        self.player_engagement = {
+            PlayerEngagementType.QUESTING: self.questing,
+            PlayerEngagementType.ATTACKING: self.attacking,
+            PlayerEngagementType.DEFENDING: self.defending
+        }
+
+        # ENCOUNTER
+
+        self.encounter_deck: list[Enemy | Location] = (
+            all_cards_deck.encounter_deck.copy()
+        )
+
+        self.encounter_staging: list[Enemy | Location] = []
+
+        self.encounter_engagement: list[Enemy] = []
 
         self.calculate_table_threat()
-        self.shuffle_deck()
+        self.shuffle_decks()
 
     def calculate_table_threat(self):
+
+        self.table_threat = 0
+
         for hero in self.player_heroes:
             self.table_threat += hero.threat
 
-    def shuffle_deck(self):
+    def shuffle_decks(self):
+
         random.shuffle(self.player_deck)
         random.shuffle(self.encounter_deck)
 
-    def check_lose_condition(self):
-        if self.check_threat_level():
-            print("Game Over")
-        if self.check_heroes_alive():
-            print("Game Over")
+    def draw_player_card(self):
 
-    def check_threat_level(self):
-        if self.table_threat >= LOSING_THREAT:
-            return True
-        return False
-
-    def check_heroes_alive(self):
-        for hero in self.player_heroes:
-            if hero.is_alive():
-                return False
-        return True
-
-
-    ####################################
-    def draw_card(self):
-        if not self.player_deck:
+        if len(self.player_deck) == 0:
             return None
 
-        card = self.player_deck.pop()
+        card = self.player_deck.pop(0)
+
         self.player_hand.append(card)
 
         return card
 
-    def can_pay_for(self, card):
+    def reveal_encounter_card(self):
 
-        if card.sphere_of_influence == Sphere.Neutral:
-            total_resources = sum(
-                hero.resource_pool
-                for hero in self.player_heroes
-            )
+        if len(self.encounter_deck) == 0:
+            return None
 
-            return total_resources >= card.cost
+        card = self.encounter_deck.pop(0)
 
-        for hero in self.player_heroes:
+        self.encounter_staging.append(card)
 
-            if (
-                    hero.sphere_of_influence
-                    == card.sphere_of_influence
-                    and hero.resource_pool >= card.cost
-            ):
-                return True
+        return card
+
+    def get_current_quest(self):
+
+        return self.quest_deck[0]
+
+    def check_lose_condition(self):
+
+        if self.check_threat_level():
+            return True
+
+        if self.check_heroes_alive():
+            return True
 
         return False
 
-    def pay_for_card(self, card):
+    def check_threat_level(self):
 
-        if card.sphere_of_influence == Sphere.Neutral:
+        return self.table_threat >= GameConstants.LOSING_THREAT
 
-            remaining = card.cost
+    def check_heroes_alive(self):
 
-            for hero in self.player_heroes:
+        for hero in self.player_heroes:
 
-                usable = min(
-                    hero.resource_pool,
-                    remaining
-                )
+            if hero.is_alive():
+                return False
 
-                hero.change_resource_pool(-usable)
-
-                remaining -= usable
-
-                if remaining == 0:
-                    return
-
-        else:
-            for hero in self.player_heroes:
-
-                if (
-                        hero.sphere_of_influence
-                        == card.sphere_of_influence
-                ):
-                    hero.change_resource_pool(-card.cost)
-                    return
-    ##########################
+        return True
