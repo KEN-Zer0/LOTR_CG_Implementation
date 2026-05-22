@@ -10,8 +10,8 @@ class RefreshPhase(Phase):
         character.ready()
 
     def ready_player_characters(self):
-        for _ in self.table.player_engagement:
-            for character in _:
+        for characters in self.table.player_engagement.values():
+            for character in characters:
                 self.ready_character(character)
 
     def raise_threat_level(self):
