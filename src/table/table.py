@@ -13,7 +13,7 @@ class Table:
     player_deck: list[Ally] = all_cards_deck.player_deck.copy()
     player_heroes: list[Hero] = all_cards_deck.hero_pool.copy()
     player_hand: list[Ally]
-    player_board: list[Ally]
+    player_boarqd: list[Ally]
 
     # make to dict in future
     questing: list[Ally, Hero] = []

@@ -2,6 +2,29 @@ from src.cards.base_card import BaseCard
 
 
 class Location(BaseCard):
+    """
+    Klasa obszarów
+
+    Parameters
+    ----------
+    name : enum
+        enum na nazwę karty
+
+    Attributes
+    ----------
+    name : enum
+        enum na nazwę karty
+
+    Methods
+    -------
+    name()
+        Zwraca name.
+
+    Notes
+    _____
+    Dziedziczy wszystkie parametry z ``BaseCard``.
+
+    """
     def __init__(
             self,
             name,
@@ -28,7 +51,7 @@ class Location(BaseCard):
         return self._points <= 0
 
     def copy(self):
-        return Land(
+        return Location(
             self.name,
             self.threat,
             self.quest_points
