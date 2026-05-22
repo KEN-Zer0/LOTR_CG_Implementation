@@ -1,34 +1,39 @@
 from src.cards import *
 from config import *
+from config.constants import LOSING_THREAT
 import random
+
 
 class Table:
     table_threat: int = 0
 
-    quest_deck: list[Quest]
-    active_travel_location: Land | None = None
+    quest_deck: list[Quest] = all_cards_deck.quest_deck.copy()
+    active_travel_location: Location | None = None
 
-    player_deck: list[Ally]
-    player_heroes: list[Hero]
+    player_deck: list[Ally] = all_cards_deck.player_deck.copy()
+    player_heroes: list[Hero] = all_cards_deck.hero_pool.copy()
     player_hand: list[Ally]
     player_board: list[Ally]
 
     # make to dict in future
+    questing: list[Ally, Hero] = []
+    attacking: list[Ally, Hero] = []
+    defending: list[Ally, Hero] = []
     player_engagement = [
         questing,
-        attaking,
+        attacking,
         defending
     ]
 
-    encounter_deck: list[Enemy]
+    encounter_deck: list[Enemy] = all_cards_deck.encounter_deck.copy()
     encounter_staging: list[Enemy]
     encounter_engagement: list[Enemy]
 
     def __init__(self):
-        self.quest_deck = all_cards_deck.quest_deck.copy()
-        self.player_deck = all_cards_deck.player_deck.copy()
-        self.player_heroes = all_cards_deck.hero_pool.copy()
-        self.encounter_deck = all_cards_deck.encounter_deck.copy()
+        # self.quest_deck = all_cards_deck.quest_deck.copy()
+        # self.player_deck = all_cards_deck.player_deck.copy()
+        # self.player_heroes = all_cards_deck.hero_pool.copy()
+        # self.encounter_deck = all_cards_deck.encounter_deck.copy()
 
         self.calculate_table_threat()
         self.shuffle_deck()
@@ -42,11 +47,13 @@ class Table:
         random.shuffle(self.encounter_deck)
 
     def check_lose_condition(self):
-        self.check_threat_level()
-        self.check_heroes_alive()
+        if self.check_threat_level():
+            print("Game Over")
+        if self.check_heroes_alive():
+            print("Game Over")
 
     def check_threat_level(self):
-        if self.table_threat >= 50:
+        if self.table_threat >= LOSING_THREAT:
             return True
         return False
 

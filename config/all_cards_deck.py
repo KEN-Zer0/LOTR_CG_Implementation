@@ -4,7 +4,7 @@ from src.cards import *
 
 # * - not implemented
 # player_deck=[] # ally, attachement*, event*
-# encounter_deck=[] # Enemy, location (land) , trachery*, objective*
+# encounter_deck=[] # Enemy, location (Location) , trachery*, objective*
 # quest_deck=[]  # Quest
 
 ### TODO:
@@ -30,12 +30,12 @@ encounter_deck = [
     Enemy(Enemies.Hummerhorns, 2, 0, 3, 40, 1),
     Enemy(Enemies.Ungoliants_Spawn, 5, 2, 9, 32, 3),
 
-    Land(Lands.Necromancers_Pass, 3, 2),
-    Land(Lands.Enchanted_Stream, 2, 2),
-    Land(Lands.Old_Forest_Road, 1, 3),
-    Land(Lands.Forest_Gate, 2, 4),
-    Land(Lands.Great_Forest_Web, 2, 2),
-    Land(Lands.Mountains_of_Mirkwood, 2, 3)
+    Location(Locations.Necromancers_Pass, 3, 2),
+    Location(Locations.Enchanted_Stream, 2, 2),
+    Location(Locations.Old_Forest_Road, 1, 3),
+    Location(Locations.Forest_Gate, 2, 4),
+    Location(Locations.Great_Forest_Web, 2, 2),
+    Location(Locations.Mountains_of_Mirkwood, 2, 3)
 ]
 
 player_deck = [  # for now there are only one card of each name (enum value)
@@ -75,10 +75,10 @@ all_cards_dict = {  # cards that can occur more than once in a deck
     Enemies.Hummerhorns: Enemy(Enemies.Hummerhorns, 2, 0, 3, 40, 1),
     Enemies.Ungoliants_Spawn: Enemy(Enemies.Ungoliants_Spawn, 5, 2, 9, 32, 3),
 
-    Lands.Necromancers_Pass: Land(Lands.Necromancers_Pass, 3, 2),
-    Lands.Enchanted_Stream: Land(Lands.Enchanted_Stream, 2, 2),
-    Lands.Old_Forest_Road: Land(Lands.Old_Forest_Road, 1, 3),
-    Lands.Forest_Gate: Land(Lands.Forest_Gate, 2, 4),
-    Lands.Great_Forest_Web: Land(Lands.Great_Forest_Web, 2, 2),
-    Lands.Mountains_of_Mirkwood: Land(Lands.Mountains_of_Mirkwood, 2, 3)
+    Locations.Necromancers_Pass: Location(Locations.Necromancers_Pass, 3, 2),
+    Locations.Enchanted_Stream: Location(Locations.Enchanted_Stream, 2, 2),
+    Locations.Old_Forest_Road: Location(Locations.Old_Forest_Road, 1, 3),
+    Locations.Forest_Gate: Location(Locations.Forest_Gate, 2, 4),
+    Locations.Great_Forest_Web: Location(Locations.Great_Forest_Web, 2, 2),
+    Locations.Mountains_of_Mirkwood: Location(Locations.Mountains_of_Mirkwood, 2, 3)
 }

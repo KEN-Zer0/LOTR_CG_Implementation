@@ -35,11 +35,11 @@ Enemies_dict = {
     Enemies.Ungoliants_Spawn: 'Ungoliants_Spawn',
 }
 
-Lands_dict = {
-    Lands.Great_Forest_Web: 'Great_Forest_Web',
-    Lands.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
-    Lands.Necromancers_Pass: 'Necromancers_Pass',
-    Lands.Enchanted_Stream: 'Enchanted_Stream',
-    Lands.Old_Forest_Road: 'Old_Forest_Road',
-    Lands.Forest_Gate: 'Forest_Gate',
+Locations_dict = {
+    Locations.Great_Forest_Web: 'Great_Forest_Web',
+    Locations.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
+    Locations.Necromancers_Pass: 'Necromancers_Pass',
+    Locations.Enchanted_Stream: 'Enchanted_Stream',
+    Locations.Old_Forest_Road: 'Old_Forest_Road',
+    Locations.Forest_Gate: 'Forest_Gate',
 }

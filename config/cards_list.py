@@ -43,7 +43,7 @@ class Enemies(Enum):
 
 
 @unique
-class Lands(Enum):
+class Locations(Enum):
     Great_Forest_Web = 1
     Mountains_of_Mirkwood = 2
     Necromancers_Pass = 3
