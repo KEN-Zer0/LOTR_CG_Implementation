@@ -1,5 +1,5 @@
 from src.game.phases import *
-
+from src.table import *
 
 class Game:
 
@@ -7,7 +7,7 @@ class Game:
         self.table = Table()
 
         self.phases = [
-            ResourcePhase(self.table),
+            ResourcesPhase(self.table),
             PlanningPhase(self.table),
             QuestPhase(self.table),
             TravelPhase(self.table),

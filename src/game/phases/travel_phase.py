@@ -2,4 +2,5 @@ from .phase import Phase
 
 
 class TravelPhase(Phase):
-    pass
+    def execute(self):
+        pass
