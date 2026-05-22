@@ -1,7 +1,7 @@
 from src.cards.base_card import BaseCard
 
 
-class Land(BaseCard):
+class Location(BaseCard):
     """
     Klasa obszarów
 
@@ -51,7 +51,7 @@ class Land(BaseCard):
         return self._points <= 0
 
     def copy(self):
-        return Land(
+        return Location(
             self.name,
             self.threat,
             self.quest_points
