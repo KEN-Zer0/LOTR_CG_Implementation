@@ -37,8 +37,11 @@ class PlayerCreature(Creature):
     def is_exhausted(self):
         return self._exhausted
 
-    def tap(self):
+    def exhaust(self):
         self._exhausted = True
 
-    def untap(self):
+    def ready(self):
         self._exhausted = False
+
+    def is_alive(self):
+        return self.hit_points >= 0

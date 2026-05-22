@@ -1,5 +1,8 @@
-class BaseCard:
-    """
+from abc import ABC
+
+
+class BaseCard(ABC):
+"""
     Klasa bazowa wszystkich kart
 
     Parameters
@@ -17,10 +20,9 @@ class BaseCard:
     name()
         Zwraca name.
     """
-
-
     def __init__(self, name):
         self._name = name
+
 
     @property
     def name(self):

@@ -23,23 +23,23 @@ Quests_dict = {
     Quests.Beorns_Path: 'Beorns_Path',
 }
 
-Enemys_dict = {
-    Enemys.Dol_Guldur_Orcs: 'Dol_Guldur_Orcs',
-    Enemys.Chieftan_Ufthak: 'Chieftan_Ufthak',
-    Enemys.Dol_Guldur_Beastmaster: 'Dol_Guldur_Beastmaster',
-    Enemys.Forest_Spider: 'Forest_Spider',
-    Enemys.East_Bight_Patrol: 'East_Bight_Patrol',
-    Enemys.Black_Forest_Bats: 'Black_Forest_Bats',
-    Enemys.King_Spider: 'King_Spider',
-    Enemys.Hummerhorns: 'Hummerhorns',
-    Enemys.Ungoliants_Spawn: 'Ungoliants_Spawn',
+Enemies_dict = {
+    Enemies.Dol_Guldur_Orcs: 'Dol_Guldur_Orcs',
+    Enemies.Chieftan_Ufthak: 'Chieftan_Ufthak',
+    Enemies.Dol_Guldur_Beastmaster: 'Dol_Guldur_Beastmaster',
+    Enemies.Forest_Spider: 'Forest_Spider',
+    Enemies.East_Bight_Patrol: 'East_Bight_Patrol',
+    Enemies.Black_Forest_Bats: 'Black_Forest_Bats',
+    Enemies.King_Spider: 'King_Spider',
+    Enemies.Hummerhorns: 'Hummerhorns',
+    Enemies.Ungoliants_Spawn: 'Ungoliants_Spawn',
 }
 
-Lands_dict = {
-    Lands.Great_Forest_Web: 'Great_Forest_Web',
-    Lands.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
-    Lands.Necromancers_Pass: 'Necromancers_Pass',
-    Lands.Enchanted_Stream: 'Enchanted_Stream',
-    Lands.Old_Forest_Road: 'Old_Forest_Road',
-    Lands.Forest_Gate: 'Forest_Gate',
+Locations_dict = {
+    Locations.Great_Forest_Web: 'Great_Forest_Web',
+    Locations.Mountains_of_Mirkwood: 'Mountains_of_Mirkwood',
+    Locations.Necromancers_Pass: 'Necromancers_Pass',
+    Locations.Enchanted_Stream: 'Enchanted_Stream',
+    Locations.Old_Forest_Road: 'Old_Forest_Road',
+    Locations.Forest_Gate: 'Forest_Gate',
 }
