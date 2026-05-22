@@ -12,8 +12,10 @@ class Table:
 
     player_deck: list[Ally] = all_cards_deck.player_deck.copy()
     player_heroes: list[Hero] = all_cards_deck.hero_pool.copy()
-    player_hand: list[Ally]
-    player_boarqd: list[Ally]
+    player_hand: list[Ally]##!
+    player_board: list[Ally]##!
+
+    encounter_staging: list[Enemy]##!
 
     # make to dict in future
     questing: list[Ally, Hero] = []
@@ -35,6 +37,9 @@ class Table:
         # self.player_heroes = all_cards_deck.hero_pool.copy()
         # self.encounter_deck = all_cards_deck.encounter_deck.copy()
         self.player_hand = []
+
+        self.encounter_staging = []
+        self.encounter_engagement = []
 
         for _ in range(6):
             self.draw_card()
