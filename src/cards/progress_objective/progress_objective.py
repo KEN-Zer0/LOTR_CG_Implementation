@@ -11,6 +11,10 @@ class ProgressObjective(BaseCard):
     def progress(self):
         return self._progress
 
+    @property
+    def required_progress(self):
+        return self._required_progress
+
     def place_progress_token(self, tokens):
         self._progress += tokens
 

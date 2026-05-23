@@ -3,44 +3,31 @@ from abc import ABC
 
 class BaseCard(ABC):
     """
-    Klasa bazowa wszystkich kart
+    Base class for all card types.
 
     Parameters
     ----------
-    name : enum
-        enum na nazwę karty
+    name : Enum
+        The enum representation of the card name.
 
     Attributes
     ----------
-    name : enum
-        enum na nazwę karty
-
-    Methods
-    -------
-    name()
-        Zwraca name.
+    _name : Enum
+        Internal storage for the card name.
     """
+
     def __init__(self, name):
         self._name = name
-
 
     @property
     def name(self):
         """
-        Zwraca name.
-
-        Parameters
-        ----------
-        none
-
-        Raises
-        ------
-        none
+        Get the name of the card.
 
         Returns
         -------
-        enum
-            Enum na nazwę karty.
+        Enum or str
+            The card name enum, or "Name empty" if the name is not set.
         """
         if not self._name:
             return "Name empty"
