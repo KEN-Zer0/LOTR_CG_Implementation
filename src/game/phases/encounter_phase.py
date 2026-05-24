@@ -1,4 +1,5 @@
 from .phase import Phase
+from src.cards import Enemy
 
 
 class EncounterPhase(Phase):
@@ -16,19 +17,20 @@ class EncounterPhase(Phase):
         self.table.encounter_staging.append(card)
 
     def engagement_check(self):
-        for enemy in list(self.table.encounter_staging):
+        player_threat = self.table.table_threat
 
-            # znajdź najniższy threat gracza
-            player_threat = self.table.table_threat
+        for card in list(self.table.encounter_staging):
+            if not isinstance(card, Enemy):
+                continue
 
-            if enemy.engagement <= player_threat:
-                self.table.encounter_engagement.append(enemy)
-                self.table.encounter_staging.remove(enemy)
+            if card.engagement <= player_threat:
+                self.table.encounter_engagement.append(card)
+                self.table.encounter_staging.remove(card)
 
     def staging_threat(self):
         # dodaje threat z kart w staging area
         threat = sum(
-            enemy.threat for enemy in self.table.encounter_staging
+            card.threat for card in self.table.encounter_staging
         )
 
         self.table.table_threat += threat

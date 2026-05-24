@@ -5,9 +5,9 @@ class Creature(BaseCard):
     def __init__(
             self,
             name,
-            attack,
-            defense,
-            max_hit_points
+            attack: int,
+            defense: int,
+            max_hit_points: int
     ):
         super().__init__(name)
 
