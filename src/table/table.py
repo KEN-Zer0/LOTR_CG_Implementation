@@ -105,35 +105,16 @@ class Table:
 
         return self.quest_deck[0]
 
-    def check_lose_condition(self) -> bool:
-        """
-        Evaluates all possible failure states to determine if the game is over.
+    def check_win_condition(self) -> bool:
+        return len(self.quest_deck) == 0
 
-        Returns:
-            bool: True if any losing condition is met (threat limit reached or
-                  all heroes are dead), False otherwise.
-        """
+    def check_lose_condition(self) -> bool:
         return self.is_threat_too_high() or self.are_all_heroes_dead()
 
     def is_threat_too_high(self) -> bool:
-        """
-        Checks if the current table threat level has met or exceeded the losing threshold.
-
-        Returns:
-            bool: True if the threat level is equal to or greater than the
-                  defined LOSING_THREAT constant.
-        """
         return self.table_threat >= GameConstants.LOSING_THREAT
 
     def are_all_heroes_dead(self) -> bool:
-        """
-        Iterates through the player's hero list to verify if the entire party
-        has been defeated.
-
-        Returns:
-            bool: False if at least one hero is still alive;
-                  True if no living heroes remain in the party.
-        """
         for hero in self.player_heroes:
             if hero.is_alive():
                 return False
