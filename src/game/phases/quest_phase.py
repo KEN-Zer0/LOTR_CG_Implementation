@@ -95,6 +95,5 @@ class QuestPhase(Phase):
             self._advance_quest()
 
     def _advance_quest(self) -> None:
-        """Moves to the next quest card if one exists."""
-        if len(self.table.quest_deck) > 1:
-            self.table.quest_deck.pop(0)
+        """Removes the completed quest card; if more quests remain, the next becomes active."""
+        self.table.quest_deck.pop(0)
