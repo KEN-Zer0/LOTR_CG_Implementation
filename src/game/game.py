@@ -18,4 +18,6 @@ class Game:
 
     def run_round(self):
         for phase in self.phases:
+            if self.table.check_win_condition() or self.table.check_lose_condition():
+                return
             phase.execute()
