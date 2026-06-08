@@ -2,6 +2,10 @@
 from src.game.game import Game
 
 game = Game()
-while not game.table.check_lose_condition():
+while not game.table.check_win_condition() and not game.table.check_lose_condition():
     game.run_round()
-print("Game over")
+
+if game.table.check_win_condition():
+    print("Victory! All quests completed.")
+else:
+    print("Defeat! The fellowship has fallen.")

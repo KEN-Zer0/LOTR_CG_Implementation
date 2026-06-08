@@ -35,6 +35,9 @@ class Creature(BaseCard):
     def is_dead(self):
         return self._hit_points <= 0
 
+    def take_damage(self, damage: int) -> None:
+        self.change_hp(-damage)
+
     def change_hp(self, delta_hp):
         self._hit_points += delta_hp
 

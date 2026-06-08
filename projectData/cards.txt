@@ -1,0 +1,217 @@
+# ==============================================================================
+# DOKUMENTACJA STATYSTYK (ŚCIĄGAWKA CO JEST CZYM)
+# ==============================================================================
+#
+# 1. Klasa: Hero (Bohaterowie)
+#    Konstruktor: Hero(name, attack, defense, max_hit_points, willpower, sphere_of_influence, threat)
+#    - name:                Identyfikator z enum (np. Heroes.Aragorn)
+#    - attack:              Siła ataku (miecze) – ile obrażeń zadaje podczas fazy walki.
+#    - defense:             Obrona (tarcze) – o ile zmniejsza obrażenia zadawane przez wrogów.
+#    - max_hit_points:      Maksymalne punkty życia (HP) – ile ran postać może przyjąć przed śmiercią.
+#    - willpower:           Siła woli – statystyka używana do generowania postępu w fazie wyprawy (Quest Phase).
+#    - sphere_of_influence: Sfera wpływów (np. Sphere.Spirit) – określa rodzaj generowanych zasobów.
+#    - threat:              Koszt zagrożenia – wartość dodawana do poziomu zagrożenia gracza na początku gry.
+#
+# 2. Klasa: Ally (Sprzymierzeńcy)
+#    Konstruktor: Ally(name, attack, defense, max_hit_points, willpower, sphere_of_influence, cost)
+#    - name do sphere_of_influence: Działają identycznie jak u bohaterów.
+#    - cost:                Koszt w zasobach – ile żetonów danej sfery trzeba zapłacić, aby zagrać kartę z ręki.
+#
+# 3. Klasa: Enemy (Wrogowie)
+#    Konstruktor: Enemy(name, attack, defense, max_hit_points, engagement, threat)
+#    - name:                Identyfikator z enum (np. Enemies.Hill_Troll)
+#    - attack, defense, max_hit_points: Statystyki bojowe wroga (działają tak samo jak u postaci gracza).
+#    - engagement:          Koszt starcia – jeśli poziom zagrożenia gracza jest równy lub wyższy od tej wartości,
+#                           wróg automatycznie schodzi ze Staging Area i atakuje gracza w fazie spotkań.
+#    - threat:              Zagrożenie wroga – ile punktów zagrożenia wróg dodaje do Staging Area,
+#                           utrudniając postęp misji, dopóki nie wejdzie w zwarcie z graczem.
+#
+# 4. Klasa: Location (Lokacje)
+#    Konstruktor: Location(name, threat, required_progress)
+#    - name:                Identyfikator z enum (np. Locations.The_East_Bight)
+#    - threat:              Zagrożenie lokacji – ile punktów zagrożenia lokacja dodaje do Staging Area.
+#    - required_progress:   Wymagany postęp – ile żetonów postępu (progress tokens) należy na niej umieścić,
+#                           aby w pełni zbadać i odrzucić tę lokację.
+#
+# 5. Klasa: Quest (Misje)
+#    Konstruktor: Quest(name, scenario, required_progress)
+#    - name:                Identyfikator etapu misji z enum (np. Quests.Flies_and_Spiders)
+#    - scenario:            Scenariusz, do którego należy misja (np. Scenario.Passage_through_Mirkwood)
+#    - required_progress:   Liczba żetonów postępu potrzebna do ukończenia tego etapu wyprawy.
+#
+# ==============================================================================
+
+from config.cards_list import *
+from src.cards import *
+
+# * - not implemented
+# player_deck=[] # ally, attachement*, event*
+# encounter_deck=[] # Enemy, location (Location) , trachery*, objective*
+# quest_deck=[]  # Quest
+
+### TODO:
+# Divide each deck into a separate file
+# Separate Enums, lists, dictionaries
+# Make some easy to use system for changing decks,
+# need to have duplicates related utilities
+
+# ==============================================================================
+# PULA BOHATERÓW (HERO POOL)
+# ==============================================================================
+hero_pool = [
+    # --- Twoje oryginalne karty ---
+    Hero(Heroes.Eowyn, 1, 1, 3, 4, Sphere.Spirit, 9), #
+    Hero(Heroes.Eleanor, 1, 2, 3, 1, Sphere.Spirit, 7), #
+    Hero(Heroes.Thalin, 2, 2, 4, 1, Sphere.Tactics, 9), #
+
+    # --- Dodane brakujące karty z Core Set ---
+    Hero(Heroes.Aragorn, 3, 2, 5, 2, Sphere.Leadership, 12),
+    Hero(Heroes.Theodred, 2, 1, 4, 1, Sphere.Leadership, 8),
+    Hero(Heroes.Gloin, 2, 1, 4, 2, Sphere.Leadership, 9),
+    Hero(Heroes.Gimli, 2, 2, 5, 2, Sphere.Tactics, 11),
+    Hero(Heroes.Legolas, 3, 1, 4, 1, Sphere.Tactics, 9),
+    Hero(Heroes.Denethor, 1, 3, 3, 1, Sphere.Lore, 8),
+    Hero(Heroes.Glorfindel, 3, 1, 5, 3, Sphere.Lore, 12),
+    Hero(Heroes.Beravor, 2, 2, 4, 2, Sphere.Lore, 10)
+]
+
+# ==============================================================================
+# TALIA SPOTKAŃ (ENCOUNTER DECK)
+# ==============================================================================
+encounter_deck = [
+    # --- Twoje oryginalne karty ---
+    Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2), #
+    Enemy(Enemies.Chieftan_Ufthak, 3, 3, 6, 35, 2), #
+    Enemy(Enemies.Dol_Guldur_Beastmaster, 3, 1, 5, 35, 2), #
+    Enemy(Enemies.Forest_Spider, 2, 1, 4, 25, 2), #
+    Enemy(Enemies.East_Bight_Patrol, 3, 1, 2, 5, 3), #
+    Enemy(Enemies.Black_Forest_Bats, 1, 0, 2, 15, 1), #
+    Enemy(Enemies.King_Spider, 3, 1, 3, 20, 2), #
+    Enemy(Enemies.Hummerhorns, 2, 0, 3, 40, 1), #
+    Enemy(Enemies.Ungoliants_Spawn, 5, 2, 9, 32, 3), #
+
+    Location(Locations.Necromancers_Pass, 3, 2), #
+    Location(Locations.Enchanted_Stream, 2, 2), #
+    Location(Locations.Old_Forest_Road, 1, 3), #
+    Location(Locations.Forest_Gate, 2, 4), #
+    Location(Locations.Great_Forest_Web, 2, 2), #
+    Location(Locations.Mountains_of_Mirkwood, 2, 3), #
+
+    # --- Dodane brakujące karty z Core Set ---
+    Enemy(Enemies.Wolf_Rider, 2, 0, 2, 10, 1),
+    Enemy(Enemies.Hill_Troll, 6, 3, 9, 30, 1),
+    Enemy(Enemies.Goblin_Sniper, 2, 0, 2, 48, 2),
+    Enemy(Enemies.Marsh_Adder, 4, 1, 5, 40, 3),
+    Enemy(Enemies.Wargs, 3, 1, 3, 34, 2),
+    Enemy(Enemies.Dungeon_Jailor, 2, 3, 5, 38, 1),
+    Enemy(Enemies.Nazgul_of_Dol_Guldur, 4, 3, 9, 40, 5),
+    Enemy(Enemies.Cavern_Guardian, 2, 1, 2, 8, 2),
+    Enemy(Enemies.Misty_Mountain_Goblins, 2, 1, 3, 15, 2),
+    Enemy(Enemies.Eastern_Crows, 1, 0, 1, 30, 1),
+
+    Location(Locations.The_Brown_Lands, 5, 1),
+    Location(Locations.The_East_Bight, 1, 6),
+    Location(Locations.Banks_of_the_Anduin, 1, 3),
+    Location(Locations.Gladden_Fields, 3, 3)
+]
+
+# ==============================================================================
+# TALIA GRACZA (PLAYER DECK)
+# ==============================================================================
+player_deck = [
+    # --- Twoje oryginalne karty ---
+    Ally(Allies.Wandering_Took, 1, 1, 2, 1, Sphere.Spirit, 2), #
+    Ally(Allies.Lorien_Guide, 1, 1, 2, 0, Sphere.Spirit, 3), #
+    Ally(Allies.Northern_Tracker, 2, 2, 3, 1, Sphere.Spirit, 4), #
+    Ally(Allies.Veteran_Axehand, 2, 1, 2, 0, Sphere.Tactics, 2), #
+    Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 2), #
+    Ally(Allies.Horseback_Archer, 2, 1, 2, 0, Sphere.Tactics, 3), #
+    Ally(Allies.Beorn, 3, 3, 6, 1, Sphere.Tactics, 6), #
+    Ally(Allies.Gandalf, 4, 4, 4, 4, Sphere.Neutral, 5), #
+
+    # --- Dodane brakujące karty z Core Set ---
+    Ally(Allies.Guard_of_the_Citadel, 1, 0, 2, 1, Sphere.Leadership, 2),
+    Ally(Allies.Faramir, 1, 2, 3, 2, Sphere.Leadership, 4),
+    Ally(Allies.Son_of_Arnor, 2, 0, 2, 0, Sphere.Leadership, 3),
+    Ally(Allies.Snowbourn_Scout, 0, 1, 1, 0, Sphere.Leadership, 1),
+    Ally(Allies.Silverlode_Archer, 2, 0, 1, 1, Sphere.Leadership, 3),
+    Ally(Allies.Longbeard_Orc_Slayer, 2, 1, 3, 0, Sphere.Leadership, 4),
+    Ally(Allies.Brok_Ironfist, 2, 1, 4, 2, Sphere.Leadership, 6),
+    Ally(Allies.Daughter_of_the_Nimrodel, 0, 0, 1, 1, Sphere.Lore, 3),
+    Ally(Allies.Erebor_Hammersmith, 1, 1, 3, 1, Sphere.Lore, 2),
+    Ally(Allies.Henamarth_Riversong, 1, 0, 1, 1, Sphere.Lore, 1),
+    Ally(Allies.Miner_of_the_Iron_Chills, 1, 1, 2, 0, Sphere.Lore, 2),
+    Ally(Allies.Gleowine, 0, 0, 2, 1, Sphere.Lore, 2)
+]
+
+# ==============================================================================
+# TALIA MISJI (QUEST DECK)
+# ==============================================================================
+quest_deck = [
+    Quest(Quests.Flies_and_Spiders, Scenario.Passage_through_Mirkwood, 8), #
+    Quest(Quests.A_fork_in_the_road, Scenario.Passage_through_Mirkwood, 2), #
+    Quest(Quests.Beorns_Path, Scenario.Passage_through_Mirkwood, 10) #
+]
+
+# ==============================================================================
+# SŁOWNIK WSZYSTKICH KART (ALL CARDS DICTIONARY)
+# ==============================================================================
+all_cards_dict = {
+    # --- Sprzymierzeńcy (Allies) ---
+    Allies.Wandering_Took: Ally(Allies.Wandering_Took, 1, 1, 2, 1, Sphere.Spirit, 2), #
+    Allies.Lorien_Guide: Ally(Allies.Lorien_Guide, 1, 1, 2, 0, Sphere.Spirit, 3), #
+    Allies.Northern_Tracker: Ally(Allies.Northern_Tracker, 2, 2, 3, 1, Sphere.Spirit, 4), #
+    Allies.Veteran_Axehand: Ally(Allies.Veteran_Axehand, 2, 1, 2, 0, Sphere.Tactics, 2), #
+    Allies.Gondorian_Spearman: Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 2), #
+    Allies.Horseback_Archer: Ally(Allies.Horseback_Archer, 2, 1, 2, 0, Sphere.Tactics, 3), #
+    Allies.Beorn: Ally(Allies.Beorn, 3, 3, 6, 1, Sphere.Tactics, 6), #
+    Allies.Gandalf: Ally(Allies.Gandalf, 4, 4, 4, 4, Sphere.Neutral, 5), #
+
+    Allies.Guard_of_the_Citadel: Ally(Allies.Guard_of_the_Citadel, 1, 0, 2, 1, Sphere.Leadership, 2),
+    Allies.Faramir: Ally(Allies.Faramir, 1, 2, 3, 2, Sphere.Leadership, 4),
+    Allies.Son_of_Arnor: Ally(Allies.Son_of_Arnor, 2, 0, 2, 0, Sphere.Leadership, 3),
+    Allies.Snowbourn_Scout: Ally(Allies.Snowbourn_Scout, 0, 1, 1, 0, Sphere.Leadership, 1),
+    Allies.Silverlode_Archer: Ally(Allies.Silverlode_Archer, 2, 0, 1, 1, Sphere.Leadership, 3),
+    Allies.Longbeard_Orc_Slayer: Ally(Allies.Longbeard_Orc_Slayer, 2, 1, 3, 0, Sphere.Leadership, 4),
+    Allies.Brok_Ironfist: Ally(Allies.Brok_Ironfist, 2, 1, 4, 2, Sphere.Leadership, 6),
+    Allies.Daughter_of_the_Nimrodel: Ally(Allies.Daughter_of_the_Nimrodel, 0, 0, 1, 1, Sphere.Lore, 3),
+    Allies.Erebor_Hammersmith: Ally(Allies.Erebor_Hammersmith, 1, 1, 3, 1, Sphere.Lore, 2),
+    Allies.Henamarth_Riversong: Ally(Allies.Henamarth_Riversong, 1, 0, 1, 1, Sphere.Lore, 1),
+    Allies.Miner_of_the_Iron_Chills: Ally(Allies.Miner_of_the_Iron_Chills, 1, 1, 2, 0, Sphere.Lore, 2),
+    Allies.Gleowine: Ally(Allies.Gleowine, 0, 0, 2, 1, Sphere.Lore, 2),
+
+    # --- Wrogowie (Enemies) ---
+    Enemies.Dol_Guldur_Orcs: Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2), #
+    Enemies.Chieftan_Ufthak: Enemy(Enemies.Chieftan_Ufthak, 3, 3, 6, 35, 2), #
+    Enemies.Dol_Guldur_Beastmaster: Enemy(Enemies.Dol_Guldur_Beastmaster, 3, 1, 5, 35, 2), #
+    Enemies.Forest_Spider: Enemy(Enemies.Forest_Spider, 2, 1, 4, 25, 2), #
+    Enemies.East_Bight_Patrol: Enemy(Enemies.East_Bight_Patrol, 3, 1, 2, 5, 3), #
+    Enemies.Black_Forest_Bats: Enemy(Enemies.Black_Forest_Bats, 1, 0, 2, 15, 1), #
+    Enemies.King_Spider: Enemy(Enemies.King_Spider, 3, 1, 3, 20, 2), #
+    Enemies.Hummerhorns: Enemy(Enemies.Hummerhorns, 2, 0, 3, 40, 1), #
+    Enemies.Ungoliants_Spawn: Enemy(Enemies.Ungoliants_Spawn, 5, 2, 9, 32, 3), #
+
+    Enemies.Wolf_Rider: Enemy(Enemies.Wolf_Rider, 2, 0, 2, 10, 1),
+    Enemies.Hill_Troll: Enemy(Enemies.Hill_Troll, 6, 3, 9, 30, 1),
+    Enemies.Goblin_Sniper: Enemy(Enemies.Goblin_Sniper, 2, 0, 2, 48, 2),
+    Enemies.Marsh_Adder: Enemy(Enemies.Marsh_Adder, 4, 1, 5, 40, 3),
+    Enemies.Wargs: Enemy(Enemies.Wargs, 3, 1, 3, 34, 2),
+    Enemies.Dungeon_Jailor: Enemy(Enemies.Dungeon_Jailor, 2, 3, 5, 38, 1),
+    Enemies.Nazgul_of_Dol_Guldur: Enemy(Enemies.Nazgul_of_Dol_Guldur, 4, 3, 9, 40, 5),
+    Enemies.Cavern_Guardian: Enemy(Enemies.Cavern_Guardian, 2, 1, 2, 8, 2),
+    Enemies.Misty_Mountain_Goblins: Enemy(Enemies.Misty_Mountain_Goblins, 2, 1, 3, 15, 2),
+    Enemies.Eastern_Crows: Enemy(Enemies.Eastern_Crows, 1, 0, 1, 30, 1),
+
+    # --- Lokacje (Locations) ---
+    Locations.Necromancers_Pass: Location(Locations.Necromancers_Pass, 3, 2), #
+    Locations.Enchanted_Stream: Location(Locations.Enchanted_Stream, 2, 2), #
+    Locations.Old_Forest_Road: Location(Locations.Old_Forest_Road, 1, 3), #
+    Locations.Forest_Gate: Location(Locations.Forest_Gate, 2, 4), #
+    Locations.Great_Forest_Web: Location(Locations.Great_Forest_Web, 2, 2), #
+    Locations.Mountains_of_Mirkwood: Location(Locations.Mountains_of_Mirkwood, 2, 3), #
+
+    Locations.The_Brown_Lands: Location(Locations.The_Brown_Lands, 5, 1),
+    Locations.The_East_Bight: Location(Locations.The_East_Bight, 1, 6),
+    Locations.Banks_of_the_Anduin: Location(Locations.Banks_of_the_Anduin, 1, 3),
+    Locations.Gladden_Fields: Location(Locations.Gladden_Fields, 3, 3)
+}
