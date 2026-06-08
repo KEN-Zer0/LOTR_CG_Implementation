@@ -51,9 +51,10 @@ class TravelPhase(Phase):
 
         Override this method to implement custom selection logic,
         e.g. for an AI agent. Returns None to pass.
-        Default: travels to the location with the most quest points.
+        Default: travels to the highest-threat location, removing the most
+        staging pressure while it is being cleared.
         """
-        return max(eligible, key=lambda loc: loc.progress)
+        return max(eligible, key=lambda loc: loc.threat)
 
     # --- Travel execution ---
 
