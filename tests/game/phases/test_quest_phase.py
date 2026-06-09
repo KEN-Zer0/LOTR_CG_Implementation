@@ -1,0 +1,85 @@
+import pytest
+from src.game.phases.quest_phase import QuestPhase
+from src.cards import Enemy, Location
+from config.cards_list import Enemies, Locations
+
+
+def test_all_characters_exhausted_after_commit(table):
+    """All ready heroes are exhausted when committing to the quest."""
+    phase = QuestPhase(table)
+    phase.execute()
+    for hero in table.player_heroes:
+        assert hero.exhausted
+
+
+def test_willpower_exceeds_threat_adds_progress(table):
+    """Net positive willpower adds progress to the active quest."""
+    phase = QuestPhase(table)
+    quest = table.get_current_quest()
+    initial = quest.progress
+    phase.execute()
+    assert quest.progress > initial
+
+
+def test_threat_exceeds_willpower_raises_table_threat(table):
+    """Net negative willpower raises table_threat by the difference."""
+    phase = QuestPhase(table)
+    # Heroes willpower = 4+1+1 = 6; add enemies with total threat = 20
+    for _ in range(10):
+        table.encounter_staging.append(Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2))
+    initial = table.table_threat
+    phase.execute()
+    assert table.table_threat > initial
+
+
+def test_equal_willpower_and_threat_no_change(table):
+    """When willpower equals staging threat, neither progress nor threat changes."""
+    phase = QuestPhase(table)
+    # Heroes willpower = 6; add enemies with total threat = 6
+    for _ in range(3):
+        table.encounter_staging.append(Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2))
+    initial_threat = table.table_threat
+    initial_progress = table.get_current_quest().progress
+    phase.execute()
+    assert table.table_threat == initial_threat
+    assert table.get_current_quest().progress == initial_progress
+
+
+def test_quest_advances_when_complete(table):
+    """Quest deck shrinks when the current quest accumulates enough progress."""
+    phase = QuestPhase(table)
+    quest = table.get_current_quest()
+    quest._progress = quest.required_progress - 1
+    initial_count = len(table.quest_deck)
+    phase.execute()
+    assert len(table.quest_deck) < initial_count
+
+
+def test_progress_fills_active_location_first(table):
+    """Progress tokens go to the active location before the quest card."""
+    phase = QuestPhase(table)
+    loc = Location(Locations.Old_Forest_Road, 1, 2)
+    table.active_travel_location = loc
+    phase.execute()
+    assert loc.is_complete()
+    assert table.active_travel_location is None
+    assert loc in table.encounter_discard
+
+
+def test_progress_overflow_from_location_to_quest(table):
+    """Surplus progress after filling a location carries over to the quest."""
+    phase = QuestPhase(table)
+    loc = Location(Locations.Old_Forest_Road, 1, 1)
+    table.active_travel_location = loc
+    quest = table.get_current_quest()
+    initial_progress = quest.progress
+    # willpower=6, staging threat=0 → net=6; location needs 1 → overflow 5 to quest
+    phase.execute()
+    assert quest.progress == initial_progress + 5
+
+
+def test_questing_list_cleared_after_phase(table):
+    """The questing list is empty after execute completes."""
+    phase = QuestPhase(table)
+    phase.execute()
+    assert table.questing == []
