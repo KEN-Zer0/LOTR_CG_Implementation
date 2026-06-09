@@ -60,7 +60,7 @@ LOTR_CG_Implementation/
 ## Card Hierarchy
 
 ```
-BaseCard
+BaseCard(name: Heroes | Allies | Enemies | Locations | Quests)
 ├── Creature (attack, defense, hit_points)
 │   ├── Enemy (threat, engagement_cost)
 │   └── PlayerCreature (willpower, sphere, exhausted, resource_pool)
