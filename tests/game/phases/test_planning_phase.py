@@ -1,18 +1,17 @@
 import pytest
 from src.game.phases.planning_phase import PlanningPhase
-from src.cards import Ally
-from config.limited.cards_list import Allies, Sphere
+from config.limited.cards_list import Allies
 from config.limited.cards_registry import CARDS
 
 
 @pytest.fixture
 def cheap_ally():
-    return Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 1)
+    return CARDS[Allies.Gondorian_Spearman].copy()  # cost=2
 
 
 @pytest.fixture
 def expensive_ally():
-    return Ally(Allies.Beorn, 3, 3, 6, 1, Sphere.Tactics, 6)
+    return CARDS[Allies.Beorn].copy()  # cost=6
 
 
 def test_plays_affordable_card(table, cheap_ally):
@@ -48,17 +47,17 @@ def test_deducts_resources_after_playing(table, cheap_ally):
 def test_choose_card_returns_cheapest(table):
     """_choose_card selects the card with the lowest cost."""
     phase = PlanningPhase(table)
-    a = Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 1)
-    b = Ally(Allies.Beorn, 3, 3, 6, 1, Sphere.Tactics, 6)
+    a = CARDS[Allies.Gondorian_Spearman].copy()  # cost=2
+    b = CARDS[Allies.Beorn].copy()               # cost=6
     assert phase._choose_card([b, a]) is a
 
 
 def test_plays_cheapest_when_resources_limited(table):
     """Cheapest card is played when resources cover only one card."""
     phase = PlanningPhase(table)
-    cheap = Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 1)
-    pricey = Ally(Allies.Beorn, 3, 3, 6, 1, Sphere.Tactics, 6)
-    table.player_heroes[0].change_resource_pool(1)
+    cheap = CARDS[Allies.Gondorian_Spearman].copy()  # cost=2
+    pricey = CARDS[Allies.Beorn].copy()              # cost=6
+    table.player_heroes[0].change_resource_pool(2)
     table.player_hand.extend([pricey, cheap])
     phase.execute()
     assert cheap in table.player_board
@@ -76,11 +75,11 @@ def test_total_resources_sums_all_heroes(table):
 def test_pay_for_card_spends_from_richest_hero(table):
     """Resources are deducted from the hero with the most tokens first."""
     phase = PlanningPhase(table)
-    table.player_heroes[0].change_resource_pool(5)
+    table.player_heroes[0].change_resource_pool(6)
     table.player_heroes[1].change_resource_pool(1)
-    card = Ally(Allies.Gandalf, 4, 4, 4, 4, Sphere.Neutral, 4)
+    card = CARDS[Allies.Gandalf].copy()  # cost=5
     phase._pay_for_card(card)
-    assert table.player_heroes[0].resource_pool == 1
+    assert table.player_heroes[0].resource_pool == 1  # 6 - 5 = 1
     assert table.player_heroes[1].resource_pool == 1
 
 
@@ -88,8 +87,8 @@ def test_multiple_cards_played_in_one_phase(table):
     """All affordable cards are played before the phase ends."""
     phase = PlanningPhase(table)
     table.player_heroes[0].change_resource_pool(4)
-    a = Ally(Allies.Gondorian_Spearman, 1, 1, 1, 0, Sphere.Tactics, 1)
-    b = Ally(Allies.Wandering_Took, 1, 1, 2, 1, Sphere.Spirit, 2)
+    a = CARDS[Allies.Gondorian_Spearman].copy()  # cost=2
+    b = CARDS[Allies.Wandering_Took].copy()       # cost=2
     table.player_hand.extend([a, b])
     phase.execute()
     assert a in table.player_board
