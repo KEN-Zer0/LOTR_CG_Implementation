@@ -11,6 +11,7 @@ class EncounterPhase(Phase):
     """
 
     def execute(self):
+        """Reveal one encounter card, handle optional engagement, then auto-engage eligible enemies."""
         self._reveal_encounter_cards()
         self._optional_engagement()
         self._forced_engagement()
@@ -18,23 +19,29 @@ class EncounterPhase(Phase):
     # --- Reveal ---
 
     def _reveal_encounter_cards(self) -> None:
+        """Reveal the top encounter card and place it in the staging area."""
         self.table.reveal_encounter_card()
 
     # --- Optional engagement ---
 
     def _optional_engagement(self) -> None:
+        """Engage any enemies chosen by _choose_optional_engagement."""
         available = self._get_staging_enemies()
         chosen = self._choose_optional_engagement(available)
         for enemy in chosen:
             self._engage(enemy)
 
     def _choose_optional_engagement(self, available: list[Enemy]) -> list[Enemy]:
-        """
-        Selects enemies to voluntarily engage from the staging area.
+        """Select enemies to voluntarily engage from the staging area.
 
-        Override for custom logic, e.g. proactively engaging a weak enemy
-        before it auto-engages next round.
-        Default: no optional engagement.
+        Override for custom logic (e.g. proactively engaging a weak enemy
+        before it auto-engages next round).
+
+        Args:
+            available (list[Enemy]): Enemies currently in the staging area.
+
+        Returns:
+            list[Enemy]: Enemies the player chooses to engage voluntarily.
         """
         return []
 

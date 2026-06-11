@@ -1,3 +1,5 @@
+"""Lookup dictionaries mapping card enum keys to their display name strings."""
+
 from .cards_list import *
 
 Heroes_dict = {
