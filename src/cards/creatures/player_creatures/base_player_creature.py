@@ -13,7 +13,16 @@ class PlayerCreature(Creature):
             willpower,
             sphere_of_influence
     ):
-        """Initialize; creature starts ready (not exhausted)."""
+        """Initialize; creature starts ready (not exhausted).
+
+        Args:
+            name (Enum): Enum identifier for this creature.
+            attack (int): Damage dealt per combat attack.
+            defense (int): Damage absorbed before applying net damage to hit_points.
+            max_hit_points (int): Maximum and starting hit points.
+            willpower (int): Willpower contributed when committed to the quest.
+            sphere_of_influence (Sphere): Resource sphere this creature belongs to.
+        """
         super().__init__(name, attack, defense, max_hit_points)
 
         self._willpower = willpower
@@ -22,21 +31,25 @@ class PlayerCreature(Creature):
 
     @property
     def willpower(self):
-        """Willpower contributed when this creature commits to the quest."""
+        """int: Willpower contributed when this creature commits to the quest."""
         return self._willpower
 
     @property
     def sphere_of_influence(self):
-        """Resource sphere this creature belongs to (Spirit, Tactics, Lore, Leadership, Neutral)."""
+        """Sphere: Resource sphere this creature belongs to (Spirit, Tactics, Lore, Leadership, Neutral)."""
         return self._sphere_of_influence
 
     @property
     def exhausted(self):
-        """True after the creature has been committed to quest or combat this round."""
+        """bool: True after the creature has been committed to quest or combat this round."""
         return self._exhausted
 
     def is_exhausted(self):
-        """Return True if the creature is currently exhausted."""
+        """Check whether the creature is currently exhausted.
+
+        Returns:
+            bool: True if the creature is exhausted.
+        """
         return self._exhausted
 
     def exhaust(self):
@@ -48,5 +61,9 @@ class PlayerCreature(Creature):
         self._exhausted = False
 
     def is_alive(self):
-        """Return True if hit_points > 0."""
+        """Check whether the creature is still alive.
+
+        Returns:
+            bool: True if hit_points > 0.
+        """
         return self.hit_points > 0

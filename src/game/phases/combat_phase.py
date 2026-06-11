@@ -71,22 +71,31 @@ class CombatPhase(Phase):
     # --- Defender selection ---
 
     def _choose_defender(self, enemy: Enemy, available: list[Hero | Ally]) -> Hero | Ally | None:
-        """
-        Selects a defender for the given enemy attack.
+        """Select a defender for the given enemy attack.
 
         Override for custom logic. Return None to leave the attack undefended.
-        Default: the ready character with the highest defense value.
+
+        Args:
+            enemy (Enemy): The enemy that is attacking.
+            available (list[Hero | Ally]): Characters that are currently ready.
+
+        Returns:
+            Hero | Ally | None: The chosen defender, or None for an undefended attack.
         """
         if not available:
             return None
         return max(available, key=lambda c: c.defense)
 
     def _choose_undefended_target(self, enemy: Enemy) -> Hero:
-        """
-        Selects a hero to receive an undefended attack.
+        """Select a hero to receive an undefended attack.
 
         Override for custom logic.
-        Default: the hero with the most remaining hit points.
+
+        Args:
+            enemy (Enemy): The enemy delivering the undefended attack.
+
+        Returns:
+            Hero: The hero that will absorb the full damage.
         """
         return max(self.table.player_heroes, key=lambda h: h.hit_points)
 
@@ -121,13 +130,16 @@ class CombatPhase(Phase):
     # --- Attacker selection ---
 
     def _choose_attackers(self, enemy: Enemy, available: list[Hero | Ally]) -> list[Hero | Ally]:
-        """
-        Selects characters that will attack the given enemy.
+        """Select characters that will attack the given enemy.
 
         Override for custom logic. Return an empty list to skip attacking.
-        Default: commits the minimum set of attackers (strongest first) sufficient
-        to deal lethal damage, preserving the rest for subsequent enemies.
-        Falls back to all available if the enemy cannot be killed regardless.
+
+        Args:
+            enemy (Enemy): The enemy being attacked.
+            available (list[Hero | Ally]): Characters that are currently ready.
+
+        Returns:
+            list[Hero | Ally]: The characters committed to this attack.
         """
         if not available:
             return []

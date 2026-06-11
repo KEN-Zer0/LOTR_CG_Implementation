@@ -17,6 +17,7 @@ class QuestPhase(Phase):
     """
 
     def execute(self):
+        """Commit characters, resolve willpower vs. threat, and advance the quest if complete."""
         self._commit_to_quest()
         self._resolve_quest()
         self.table.questing.clear()
@@ -24,33 +25,40 @@ class QuestPhase(Phase):
     # --- Commit step ---
 
     def _commit_to_quest(self) -> None:
-        """Commits characters chosen by _choose_questers to the quest."""
+        """Exhaust and register the characters chosen by _choose_questers."""
         characters = self._choose_questers(self._get_available_questers())
         for character in characters:
             character.exhaust()
             self.table.questing.append(character)
 
     def _get_available_questers(self) -> list[Hero | Ally]:
-        """Returns all ready heroes and board allies eligible to quest."""
+        """Return all ready heroes and board allies eligible to quest.
+
+        Returns:
+            list[Hero | Ally]: Characters that are not currently exhausted.
+        """
         return [
             c for c in self.table.player_heroes + self.table.player_board
             if not c.exhausted
         ]
 
     def _choose_questers(self, available: list[Hero | Ally]) -> list[Hero | Ally]:
-        """
-        Selects which characters will commit to the quest.
+        """Select which characters will commit to the quest.
 
-        Override this method to implement custom selection logic,
-        e.g. for an AI agent.
-        Default: commits all available characters.
+        Override this method to implement custom selection logic (e.g. for an AI agent).
+
+        Args:
+            available (list[Hero | Ally]): Characters eligible to commit.
+
+        Returns:
+            list[Hero | Ally]: Characters that will quest this round.
         """
         return available
 
     # --- Resolution step ---
 
     def _resolve_quest(self) -> None:
-        """Compares total willpower against staging threat and applies the result."""
+        """Compare total willpower against staging threat and apply the result."""
         willpower = sum(c.willpower for c in self.table.questing)
         threat = sum(card.threat for card in self.table.encounter_staging)
         net = willpower - threat
@@ -61,9 +69,10 @@ class QuestPhase(Phase):
             self.table.table_threat += abs(net)
 
     def _add_progress(self, progress: int) -> None:
-        """
-        Distributes progress tokens, filling the active location first,
-        then directing any overflow to the current quest card.
+        """Distribute progress tokens, filling the active location first then the quest card.
+
+        Args:
+            progress (int): Total progress tokens to distribute.
         """
         if self.table.active_travel_location is not None:
             progress = self._progress_location(self.table.active_travel_location, progress)
@@ -72,9 +81,14 @@ class QuestPhase(Phase):
             self._progress_quest(progress)
 
     def _progress_location(self, location: Location, progress: int) -> int:
-        """
-        Adds progress to the active location.
-        Returns leftover progress after the location is filled.
+        """Add progress tokens to the active location and clear it if completed.
+
+        Args:
+            location (Location): The currently active travel location.
+            progress (int): Progress tokens available to place.
+
+        Returns:
+            int: Leftover progress tokens after the location is filled (0 if not yet complete).
         """
         needed = location.required_progress - location.progress
         tokens = min(progress, needed)
@@ -88,7 +102,11 @@ class QuestPhase(Phase):
         return 0
 
     def _progress_quest(self, progress: int) -> None:
-        """Adds progress to the current quest card and advances the quest if completed."""
+        """Add progress tokens to the current quest card and advance the quest if completed.
+
+        Args:
+            progress (int): Number of progress tokens to place on the quest.
+        """
         quest = self.table.get_current_quest()
         quest.place_progress_token(progress)
 
@@ -96,5 +114,5 @@ class QuestPhase(Phase):
             self._advance_quest()
 
     def _advance_quest(self) -> None:
-        """Removes the completed quest card; if more quests remain, the next becomes active."""
+        """Remove the completed quest card; the next card in the deck becomes active."""
         self.table.quest_deck.pop(0)

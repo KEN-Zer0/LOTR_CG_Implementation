@@ -14,18 +14,32 @@ class Ally(PlayerCreature):
             sphere_of_influence,
             cost
     ):
-        """Initialize ally with a resource cost required to play from hand."""
+        """Initialize ally with a resource cost required to play from hand.
+
+        Args:
+            name (Enum): Enum identifier for this ally.
+            attack (int): Damage dealt per combat attack.
+            defense (int): Damage absorbed before applying net damage to hit_points.
+            max_hit_points (int): Maximum and starting hit points.
+            willpower (int): Willpower contributed when committed to the quest.
+            sphere_of_influence (Sphere): Resource sphere this ally belongs to.
+            cost (int): Resource tokens required to play this ally from hand.
+        """
         super().__init__(name, attack, defense, max_hit_points, willpower, sphere_of_influence)
 
         self._cost = cost
 
     @property
     def cost(self):
-        """Resource tokens required to play this ally from hand."""
+        """int: Resource tokens required to play this ally from hand."""
         return self._cost
 
     def copy(self):
-        """Return a new Ally with identical stats and the same current hit_points."""
+        """Create a copy of this ally with identical stats and the same current hit_points.
+
+        Returns:
+            Ally: A new Ally instance with copied stats and hit points.
+        """
         new_ally = Ally(
             self.name,
             self.attack,

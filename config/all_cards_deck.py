@@ -1,3 +1,14 @@
+"""
+Pre-built deck lists and a master card dictionary for the Passage through Mirkwood scenario.
+
+Exported names:
+    hero_pool (list[Hero]): Starting heroes — not shuffled.
+    encounter_deck (list[Enemy | Location]): Shuffled before each game.
+    player_deck (list[Ally]): Shuffled before each game.
+    quest_deck (list[Quest]): Ordered quest sequence — not shuffled.
+    all_cards_dict (dict): Canonical prototype for each card, used for copying.
+"""
+
 from config.cards_list import *
 
 from src.cards import *
