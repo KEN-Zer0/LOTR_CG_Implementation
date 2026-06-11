@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.travel_phase import TravelPhase
 from src.cards import Location
-from config.cards_list import Locations
+from config.limited.cards_list import Locations
 
 
 def test_no_travel_when_active_location_exists(table):

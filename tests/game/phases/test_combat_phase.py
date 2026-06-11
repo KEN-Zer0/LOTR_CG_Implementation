@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.combat_phase import CombatPhase
 from src.cards import Hero, Ally, Enemy
-from config.cards_list import Heroes, Allies, Enemies, Sphere
+from config.limited.cards_list import Heroes, Allies, Enemies, Sphere
 
 
 @pytest.fixture

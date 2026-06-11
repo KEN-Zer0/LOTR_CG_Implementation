@@ -2,7 +2,7 @@ import pytest
 
 from agents.expert_agent import ExpertAgent
 from src.cards import Ally, Enemy, Location
-from config.cards_list import Allies, Enemies, Locations, Sphere
+from config.limited.cards_list import Allies, Enemies, Locations, Sphere
 
 
 @pytest.fixture

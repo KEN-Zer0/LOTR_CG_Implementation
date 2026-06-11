@@ -1,6 +1,6 @@
 import random
 
-from config import all_cards_deck
+from config.limited.decks import hero_pool, encounter_deck, player_deck, quest_deck
 from config.constants import GameConstants, PlayerEngagementType
 
 from src.cards import (
@@ -30,7 +30,7 @@ class Table:
         # QUEST
 
         self.quest_deck: list[Quest] = (
-            all_cards_deck.quest_deck.copy()
+            quest_deck.copy()
         )
 
         self.active_travel_location: Location | None = None
@@ -38,11 +38,11 @@ class Table:
         # PLAYER
 
         self.player_deck: list[Ally] = (
-            all_cards_deck.player_deck.copy()
+            player_deck.copy()
         )
 
         self.player_heroes: list[Hero] = (
-            all_cards_deck.hero_pool.copy()
+            hero_pool.copy()
         )
 
         self.player_hand: list[Ally] = []
@@ -66,7 +66,7 @@ class Table:
         # ENCOUNTER
 
         self.encounter_deck: list[Enemy | Location] = (
-            all_cards_deck.encounter_deck.copy()
+            encounter_deck.copy()
         )
 
         self.encounter_staging: list[Enemy | Location] = []

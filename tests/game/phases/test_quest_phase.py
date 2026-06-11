@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.quest_phase import QuestPhase
 from src.cards import Enemy, Location
-from config.cards_list import Enemies, Locations
+from config.limited.cards_list import Enemies, Locations
 
 
 def test_all_characters_exhausted_after_commit(table):

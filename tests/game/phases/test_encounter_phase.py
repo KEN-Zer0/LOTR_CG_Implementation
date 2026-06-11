@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.encounter_phase import EncounterPhase
 from src.cards import Enemy, Location
-from config.cards_list import Enemies, Locations
+from config.limited.cards_list import Enemies, Locations
 
 
 def test_execute_reveals_one_card_into_staging(table):

@@ -1,4 +1,5 @@
 from .phase import Phase
+from config.constants import GameConstants
 
 
 class RefreshPhase(Phase):
@@ -27,4 +28,4 @@ class RefreshPhase(Phase):
 
     def raise_threat_level(self):
         """Increase table_threat by 1."""
-        self.table.table_threat += 1
+        self.table.table_threat += GameConstants.THREAT_PER_ROUND
