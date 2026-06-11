@@ -58,10 +58,7 @@ class TravelPhase(Phase):
         return len(ready_heroes) >= cost
 
     def _choose_location(self, eligible: list[Location]) -> Location | None:
-        """Select a location to travel to from the eligible list.
-
-        Override this method to implement custom selection logic (e.g. for an AI agent).
-        Return None to pass and skip travel this round.
+        """Delegates to the table's agent.
 
         Args:
             eligible (list[Location]): Locations that can be travelled to this round.
@@ -69,7 +66,7 @@ class TravelPhase(Phase):
         Returns:
             Location | None: The chosen location, or None to pass.
         """
-        return max(eligible, key=lambda loc: loc.threat)
+        return self.table.agent.choose_location(self.table, eligible)
 
     # --- Travel execution ---
 

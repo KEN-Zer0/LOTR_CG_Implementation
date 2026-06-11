@@ -45,10 +45,7 @@ class PlanningPhase(Phase):
         return sum(hero.resource_pool for hero in self.table.player_heroes)
 
     def _choose_card(self, playable: list[Ally]) -> Ally | None:
-        """Select a card to play from the list of affordable cards.
-
-        Override this method to implement custom selection logic (e.g. for an AI agent).
-        Return None to pass and end the phase early.
+        """Delegates to the table's agent.
 
         Args:
             playable (list[Ally]): Cards that the player can currently afford.
@@ -56,7 +53,7 @@ class PlanningPhase(Phase):
         Returns:
             Ally | None: The card to play, or None to pass.
         """
-        return min(playable, key=lambda card: card.cost)
+        return self.table.agent.choose_card_to_play(self.table, playable)
 
     def _play_card(self, card: Ally) -> None:
         """Pay for the card and move it from hand to the player board.
