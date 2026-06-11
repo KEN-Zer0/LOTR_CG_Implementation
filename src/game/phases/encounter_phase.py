@@ -32,10 +32,7 @@ class EncounterPhase(Phase):
             self._engage(enemy)
 
     def _choose_optional_engagement(self, available: list[Enemy]) -> list[Enemy]:
-        """Select enemies to voluntarily engage from the staging area.
-
-        Override for custom logic (e.g. proactively engaging a weak enemy
-        before it auto-engages next round).
+        """Delegates to the table's agent.
 
         Args:
             available (list[Enemy]): Enemies currently in the staging area.
@@ -43,7 +40,7 @@ class EncounterPhase(Phase):
         Returns:
             list[Enemy]: Enemies the player chooses to engage voluntarily.
         """
-        return []
+        return self.table.agent.choose_optional_engagement(self.table, available)
 
     # --- Forced engagement ---
 

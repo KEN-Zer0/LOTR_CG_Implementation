@@ -1,13 +1,20 @@
 from src.game.phases import *
 from src.table import *
 
+from agents.base_agent import BaseAgent
+from agents.expert_agent import ExpertAgent
+
 
 class Game:
     """Orchestrates the seven game phases for each round until win or lose condition is met."""
 
-    def __init__(self):
-        """Initialize the table and the ordered list of game phases."""
-        self.table = Table()
+    def __init__(self, agent: BaseAgent | None = None):
+        """Initialize the table and the ordered list of game phases.
+
+        Args:
+            agent: Decision-making strategy to use. Defaults to ExpertAgent.
+        """
+        self.table = Table(agent=agent or ExpertAgent())
 
         self.phases = [
             ResourcesPhase(self.table),

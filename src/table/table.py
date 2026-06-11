@@ -11,12 +11,19 @@ from src.cards import (
     Location
 )
 
+from agents import ExpertAgent
+
 
 class Table:
     """Holds the full mutable game state shared by all phases."""
 
-    def __init__(self):
-        """Initialize all decks, zones, and lists; calculate starting threat and shuffle decks."""
+    def __init__(self, agent=None):
+        """Initialize all decks, zones, and lists; calculate starting threat and shuffle decks.
+
+        Args:
+            agent: Decision-making strategy used by the phases. Defaults to ExpertAgent.
+        """
+        self.agent = agent if agent is not None else ExpertAgent()
 
         self.table_threat = 0
 

@@ -43,9 +43,7 @@ class QuestPhase(Phase):
         ]
 
     def _choose_questers(self, available: list[Hero | Ally]) -> list[Hero | Ally]:
-        """Select which characters will commit to the quest.
-
-        Override this method to implement custom selection logic (e.g. for an AI agent).
+        """Delegates to the table's agent.
 
         Args:
             available (list[Hero | Ally]): Characters eligible to commit.
@@ -53,7 +51,7 @@ class QuestPhase(Phase):
         Returns:
             list[Hero | Ally]: Characters that will quest this round.
         """
-        return available
+        return self.table.agent.choose_questing_characters(self.table, available)
 
     # --- Resolution step ---
 

@@ -71,9 +71,7 @@ class CombatPhase(Phase):
     # --- Defender selection ---
 
     def _choose_defender(self, enemy: Enemy, available: list[Hero | Ally]) -> Hero | Ally | None:
-        """Select a defender for the given enemy attack.
-
-        Override for custom logic. Return None to leave the attack undefended.
+        """Delegates to the table's agent.
 
         Args:
             enemy (Enemy): The enemy that is attacking.
@@ -82,14 +80,10 @@ class CombatPhase(Phase):
         Returns:
             Hero | Ally | None: The chosen defender, or None for an undefended attack.
         """
-        if not available:
-            return None
-        return max(available, key=lambda c: c.defense)
+        return self.table.agent.choose_defender(self.table, enemy, available)
 
     def _choose_undefended_target(self, enemy: Enemy) -> Hero:
-        """Select a hero to receive an undefended attack.
-
-        Override for custom logic.
+        """Delegates to the table's agent.
 
         Args:
             enemy (Enemy): The enemy delivering the undefended attack.
@@ -97,7 +91,7 @@ class CombatPhase(Phase):
         Returns:
             Hero: The hero that will absorb the full damage.
         """
-        return max(self.table.player_heroes, key=lambda h: h.hit_points)
+        return self.table.agent.choose_undefended_target(self.table, enemy)
 
     # ==========================================================================
     # Player attacks
@@ -130,9 +124,7 @@ class CombatPhase(Phase):
     # --- Attacker selection ---
 
     def _choose_attackers(self, enemy: Enemy, available: list[Hero | Ally]) -> list[Hero | Ally]:
-        """Select characters that will attack the given enemy.
-
-        Override for custom logic. Return an empty list to skip attacking.
+        """Delegates to the table's agent.
 
         Args:
             enemy (Enemy): The enemy being attacked.
@@ -141,18 +133,7 @@ class CombatPhase(Phase):
         Returns:
             list[Hero | Ally]: The characters committed to this attack.
         """
-        if not available:
-            return []
-
-        by_attack = sorted(available, key=lambda c: c.attack, reverse=True)
-        chosen, total = [], 0
-        for char in by_attack:
-            chosen.append(char)
-            total += char.attack
-            if total - enemy.defense >= enemy.hit_points:
-                return chosen
-
-        return available
+        return self.table.agent.choose_attackers(self.table, enemy, available)
 
     # ==========================================================================
     # Helpers
