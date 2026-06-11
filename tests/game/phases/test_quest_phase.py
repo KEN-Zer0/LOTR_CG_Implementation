@@ -1,7 +1,8 @@
 import pytest
 from src.game.phases.quest_phase import QuestPhase
 from src.cards import Enemy, Location
-from config.limited.cards_list import Enemies, Locations
+from config.limited.cards_list import Enemies, Locations, Allies
+from config.limited.cards_registry import CARDS
 
 
 def test_all_characters_exhausted_after_commit(table):
@@ -83,3 +84,24 @@ def test_questing_list_cleared_after_phase(table):
     phase = QuestPhase(table)
     phase.execute()
     assert table.questing == []
+
+
+def test_ally_on_board_also_quests(table):
+    """Ally on the player board commits to the quest and becomes exhausted."""
+    phase = QuestPhase(table)
+    ally = CARDS[Allies.Wandering_Took].copy()
+    table.player_board.append(ally)
+    phase.execute()
+    assert ally.exhausted
+
+
+def test_ally_willpower_adds_to_progress(table):
+    """Ally willpower is included in the total willpower during questing."""
+    phase = QuestPhase(table)
+    ally = CARDS[Allies.Wandering_Took].copy()  # willpower=1
+    table.player_board.append(ally)
+    quest = table.get_current_quest()
+    initial = quest.progress
+    # heroes willpower = 4+1+1 = 6, ally willpower = 1, staging threat = 0 → net = +7
+    phase.execute()
+    assert quest.progress == initial + 7

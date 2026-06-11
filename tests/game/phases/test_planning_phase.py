@@ -2,6 +2,7 @@ import pytest
 from src.game.phases.planning_phase import PlanningPhase
 from src.cards import Ally
 from config.limited.cards_list import Allies, Sphere
+from config.limited.cards_registry import CARDS
 
 
 @pytest.fixture

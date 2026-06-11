@@ -2,6 +2,7 @@ import pytest
 from src.game.phases.combat_phase import CombatPhase
 from src.cards import Hero, Ally, Enemy
 from config.limited.cards_list import Heroes, Allies, Enemies, Sphere
+from config.limited.cards_registry import CARDS
 
 
 @pytest.fixture
@@ -142,3 +143,28 @@ def test_defending_and_attacking_cleared_after_execute(table, weak_enemy):
     phase.execute()
     assert table.defending == []
     assert table.attacking == []
+
+
+def test_two_enemies_first_killed_second_survives(table):
+    """First enemy is killed; heroes are exhausted after so the second enemy survives."""
+    phase = CombatPhase(table)
+    easy = CARDS[Enemies.Black_Forest_Bats].copy()  # def=0, hp=2 — one attacker lethal
+    tank = CARDS[Enemies.Ungoliants_Spawn].copy()   # def=2, hp=9 — survives
+    table.encounter_engagement.extend([easy, tank])
+    phase._player_attacks_phase()
+    assert easy in table.encounter_discard
+    assert tank in table.encounter_engagement
+
+
+def test_two_enemies_both_attack_player(table):
+    """Two engaged enemies each deal damage to the player's heroes."""
+    phase = CombatPhase(table)
+    orc1 = CARDS[Enemies.Dol_Guldur_Orcs].copy()
+    orc2 = CARDS[Enemies.Dol_Guldur_Orcs].copy()
+    table.encounter_engagement.extend([orc1, orc2])
+    for h in table.player_heroes:
+        h.exhaust()
+    hp_before = sum(h.hit_points for h in table.player_heroes)
+    phase._enemy_attacks_phase()
+    hp_after = sum(h.hit_points for h in table.player_heroes)
+    assert hp_after < hp_before

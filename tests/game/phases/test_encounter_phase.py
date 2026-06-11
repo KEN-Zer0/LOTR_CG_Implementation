@@ -2,6 +2,8 @@ import pytest
 from src.game.phases.encounter_phase import EncounterPhase
 from src.cards import Enemy, Location
 from config.limited.cards_list import Enemies, Locations
+from config.limited.cards_registry import CARDS
+from agents.expert_agent import ExpertAgent
 
 
 def test_execute_reveals_one_card_into_staging(table):
@@ -62,3 +64,29 @@ def test_get_staging_enemies_excludes_locations(table):
     result = phase._get_staging_enemies()
     assert enemy in result
     assert loc not in result
+
+
+def test_optional_engagement_via_custom_agent(table):
+    """Agent that engages all available enemies moves them from staging to engagement."""
+    class EngageAllAgent(ExpertAgent):
+        def choose_optional_engagement(self, game_state, available):
+            return available
+
+    table.agent = EngageAllAgent()
+    phase = EncounterPhase(table)
+    enemy = CARDS[Enemies.Forest_Spider].copy()
+    table.encounter_staging.append(enemy)
+    phase._optional_engagement()
+    assert enemy in table.encounter_engagement
+    assert enemy not in table.encounter_staging
+
+
+def test_location_in_staging_never_force_engaged(table):
+    """Locations are never moved to encounter_engagement by forced engagement."""
+    phase = EncounterPhase(table)
+    loc = CARDS[Locations.Great_Forest_Web].copy()
+    table.encounter_staging.append(loc)
+    table.table_threat = 50
+    phase._forced_engagement()
+    assert loc not in table.encounter_engagement
+    assert loc in table.encounter_staging
