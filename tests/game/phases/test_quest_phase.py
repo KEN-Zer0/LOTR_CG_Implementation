@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.quest_phase import QuestPhase
-from src.cards import Enemy, Location
-from config.cards_list import Enemies, Locations
+from config.limited.cards_list import Enemies, Locations, Allies
+from config.limited.cards_registry import CARDS
 
 
 def test_all_characters_exhausted_after_commit(table):
@@ -26,7 +26,7 @@ def test_threat_exceeds_willpower_raises_table_threat(table):
     phase = QuestPhase(table)
     # Heroes willpower = 4+1+1 = 6; add enemies with total threat = 20
     for _ in range(10):
-        table.encounter_staging.append(Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2))
+        table.encounter_staging.append(CARDS[Enemies.Dol_Guldur_Orcs].copy())
     initial = table.table_threat
     phase.execute()
     assert table.table_threat > initial
@@ -37,7 +37,7 @@ def test_equal_willpower_and_threat_no_change(table):
     phase = QuestPhase(table)
     # Heroes willpower = 6; add enemies with total threat = 6
     for _ in range(3):
-        table.encounter_staging.append(Enemy(Enemies.Dol_Guldur_Orcs, 2, 0, 3, 10, 2))
+        table.encounter_staging.append(CARDS[Enemies.Dol_Guldur_Orcs].copy())
     initial_threat = table.table_threat
     initial_progress = table.get_current_quest().progress
     phase.execute()
@@ -58,7 +58,7 @@ def test_quest_advances_when_complete(table):
 def test_progress_fills_active_location_first(table):
     """Progress tokens go to the active location before the quest card."""
     phase = QuestPhase(table)
-    loc = Location(Locations.Old_Forest_Road, 1, 2)
+    loc = CARDS[Locations.Old_Forest_Road].copy()  # threat=1, required_progress=3; net willpower=6 > 3 → completes
     table.active_travel_location = loc
     phase.execute()
     assert loc.is_complete()
@@ -69,13 +69,13 @@ def test_progress_fills_active_location_first(table):
 def test_progress_overflow_from_location_to_quest(table):
     """Surplus progress after filling a location carries over to the quest."""
     phase = QuestPhase(table)
-    loc = Location(Locations.Old_Forest_Road, 1, 1)
+    loc = CARDS[Locations.Old_Forest_Road].copy()  # required_progress=3; net willpower=6 → overflow=3
     table.active_travel_location = loc
     quest = table.get_current_quest()
     initial_progress = quest.progress
-    # willpower=6, staging threat=0 → net=6; location needs 1 → overflow 5 to quest
+    # willpower=6, staging threat=0 → net=6; location needs 3 → overflow 3 to quest
     phase.execute()
-    assert quest.progress == initial_progress + 5
+    assert quest.progress == initial_progress + 3
 
 
 def test_questing_list_cleared_after_phase(table):
@@ -83,3 +83,24 @@ def test_questing_list_cleared_after_phase(table):
     phase = QuestPhase(table)
     phase.execute()
     assert table.questing == []
+
+
+def test_ally_on_board_also_quests(table):
+    """Ally on the player board commits to the quest and becomes exhausted."""
+    phase = QuestPhase(table)
+    ally = CARDS[Allies.Wandering_Took].copy()
+    table.player_board.append(ally)
+    phase.execute()
+    assert ally.exhausted
+
+
+def test_ally_willpower_adds_to_progress(table):
+    """Ally willpower is included in the total willpower during questing."""
+    phase = QuestPhase(table)
+    ally = CARDS[Allies.Wandering_Took].copy()  # willpower=1
+    table.player_board.append(ally)
+    quest = table.get_current_quest()
+    initial = quest.progress
+    # heroes willpower = 4+1+1 = 6, ally willpower = 1, staging threat = 0 → net = +7
+    phase.execute()
+    assert quest.progress == initial + 7

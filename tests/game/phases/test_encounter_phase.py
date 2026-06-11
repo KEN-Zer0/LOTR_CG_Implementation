@@ -1,7 +1,8 @@
 import pytest
 from src.game.phases.encounter_phase import EncounterPhase
 from src.cards import Enemy, Location
-from config.cards_list import Enemies, Locations
+from config.limited.cards_list import Enemies, Locations
+from config.limited.cards_registry import CARDS
 
 
 def test_execute_reveals_one_card_into_staging(table):
@@ -62,3 +63,14 @@ def test_get_staging_enemies_excludes_locations(table):
     result = phase._get_staging_enemies()
     assert enemy in result
     assert loc not in result
+
+
+def test_location_in_staging_never_force_engaged(table):
+    """Locations are never moved to encounter_engagement by forced engagement."""
+    phase = EncounterPhase(table)
+    loc = CARDS[Locations.Great_Forest_Web].copy()
+    table.encounter_staging.append(loc)
+    table.table_threat = 50
+    phase._forced_engagement()
+    assert loc not in table.encounter_engagement
+    assert loc in table.encounter_staging

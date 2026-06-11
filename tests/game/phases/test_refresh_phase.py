@@ -1,7 +1,7 @@
 import pytest
 from src.game.phases.refresh_phase import RefreshPhase
 from src.cards import Ally
-from config.cards_list import Allies, Sphere
+from config.limited.cards_list import Allies, Sphere
 
 
 def test_readies_all_exhausted_heroes(table):

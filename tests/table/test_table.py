@@ -1,7 +1,7 @@
 import pytest
 from src.table.table import Table
 from src.cards import Hero, Enemy, Location
-from config.cards_list import Heroes, Enemies, Locations, Sphere
+from config.limited.cards_list import Heroes, Enemies, Locations, Sphere
 from config.constants import GameConstants
 
 

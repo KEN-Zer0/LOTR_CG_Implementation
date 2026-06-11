@@ -1,7 +1,7 @@
 import pytest
 
 from src.cards import Hero, Ally, Enemy, Location, Quest
-from config.cards_list import Heroes, Allies, Enemies, Locations, Quests, Sphere, Scenario
+from config.limited.cards_list import Heroes, Allies, Enemies, Locations, Quests, Sphere, Scenario
 from src.table.table import Table
 
 

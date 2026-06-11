@@ -1,4 +1,5 @@
 from .phase import Phase
+from config.constants import GameConstants
 
 
 class ResourcesPhase(Phase):
@@ -11,7 +12,7 @@ class ResourcesPhase(Phase):
 
     def increase_hero_resource(self, hero):
         """Add 1 resource token to the given hero."""
-        hero.change_resource_pool(1)
+        hero.change_resource_pool(GameConstants.RESOURCES_PER_HERO_PER_ROUND)
 
     def increase_heroes_resource(self):
         """Add 1 resource token to each hero in the player's party."""
