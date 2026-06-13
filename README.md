@@ -109,6 +109,112 @@ All decision points are defined in `BaseAgent` as abstract methods:
 | `choose_undefended_target(state, enemy)` | Combat phase | `Hero` |
 | `choose_attackers(state, enemy, available)` | Combat phase | `list[Hero \| Ally]` |
 
+### ExpertAgent — szczegółowa taktyka
+
+#### 1. Faza questa — `choose_questing_characters`
+
+```
+Czy są dostępne postacie (ready heroes + allies)?
+├── NIE → wyślij pustą listę (quest bez postaci)
+└── TAK → wyślij WSZYSTKICH gotowych
+```
+
+Wszystkie niezexhausted postacie idą na questa. Priorytet: willpower > gotowość bojowa. Każdy punkt willpower niżej od staging threat to +1 do table threat gracza — strata nieodwracalna. Postacie zostaną exhausted, co oznacza że nie mogą bronić ani atakować tego samego wroga w tej samej turze, ale agent akceptuje ten trade-off.
+
+---
+
+#### 2. Faza planowania — `choose_card_to_play`
+
+```
+Czy są karty które gracz może sobie pozwolić?
+├── NIE → pass (zwróć None, zakończ fazę)
+└── TAK → zagraj kartę z NAJMNIEJSZYM kosztem
+          └── powtarzaj dopóki brak affordowalnych kart lub agent zwróci None
+```
+
+Greedy: najszybciej wejść na planszę = najdłużej generować willpower, atak i obronę. Tania karta zaprzysiężona w turze 2 wygeneruje więcej wartości przez całą grę niż droga karta zaprzysiężona w turze 5.
+
+---
+
+#### 3. Faza podróży — `choose_location`
+
+```
+Czy jest aktywna lokacja?
+├── TAK → pomiń całą fazę (tylko jedna aktywna lokacja naraz)
+└── NIE → czy są lokacje w staging area które gracz może opłacić?
+          ├── NIE → pomiń
+          └── TAK → jedź do lokacji z NAJWYŻSZYM threat
+```
+
+Lokacja w staging area dodaje swój threat co turę do staging threat questa. Wyjęcie jej ze staging natychmiast zmniejsza staging threat — efekt widoczny już w tej samej fazie questa. Agent wybiera lokację z max threatsem, bo jej usunięcie daje największy zysk.
+
+---
+
+#### 4. Faza spotkań — optional engagement — `choose_optional_engagement`
+
+```
+Czy są wrogowie w staging area?
+├── NIE → nic
+└── TAK → NIE angażuj żadnego (zwróć pustą listę)
+```
+
+Agent nigdy nie angażuje wroga dobrowolnie. Zaangażowany wróg musi być obsłużony w fazie walki — wymaga exhausted obrońcy i atakujących, nawet jeśli gracz nie jest gotowy. Strategia: czekać aż forced engagement wciągnie wroga naturalnie (gdy table_threat ≥ enemy.engagement), dając czas na zgromadzenie zasobów i sojuszników.
+
+---
+
+#### 5. Faza walki — obrona — `choose_defender`
+
+```
+Czy są gotowe (niezexhausted) postacie?
+├── NIE → atak undefended → przejdź do choose_undefended_target
+└── TAK → czy wśród gotowych sojuszników (Ally) jest chump blocker?
+          │   [chump blocker = ally.hp ≤ enemy.attack − ally.defense]
+          │   (ally i tak zginie nawet jeśli zablokuje)
+          ├── TAK → wybierz chump blockera z NAJMNIEJSZĄ liczbą HP
+          │         (najtańsza strata spośród skazanych)
+          └── NIE → wybierz postać z NAJWYŻSZĄ obroną (spośród heroes + allies)
+                    (minimalizuj obrażenia przebijające obronę)
+```
+
+Priorytet chump blockera: sojusznik który i tak zginie można "poświęcić" zamiast tracić bohatera lub lepszego sojusznika. Wybór min HP spośród chump blockerów to wybór najtańszej straty — ally z 1 HP jest bardziej zbędny niż ally z 3 HP który mógłby jeszcze pomóc.
+
+---
+
+#### 6. Faza walki — cel niezablokowanego ataku — `choose_undefended_target`
+
+```
+(wywoływane gdy choose_defender zwróciło None)
+
+Wybierz bohatera z NAJWIĘKSZĄ liczbą HP
+```
+
+Kieruje obrażenia na najwytrzymalszego bohatera, chroniąc tych z małą liczbą HP przed natychmiastową śmiercią. Bohater z 1 HP zabity przez atak to stała strata (utrata willpower, ataku, obrony na całą grę).
+
+---
+
+#### 7. Faza walki — atak gracza — `choose_attackers`
+
+```
+Czy są gotowe (niezexhausted) postacie?
+├── NIE → nie atakuj tego wroga
+└── TAK → posortuj malejąco po attack
+          zacznij dobierać kolejno:
+          │
+          czy Σ attack − enemy.defense ≥ enemy.hp?  (czy ten zestaw zabije wroga?)
+          ├── TAK → zwróć ten minimalny zestaw atakujących
+          │         (pozostałe postacie zostają gotowe na kolejnych wrogów)
+          └── NIE → dodaj następną postać i sprawdź ponownie
+                    │
+                    czy przejrzano wszystkich?
+                    └── TAK → wróg nieubijany w tej turze
+                              → zwróć WSZYSTKICH dostępnych
+                              (maksymalizuj obrażenia, zbliż się do zabicia w następnej rundzie)
+```
+
+Kluczowa optymalizacja: sortowanie po ataku malejąco + early return przy pierwszym zestawie lethal. Dzięki temu reszta postaci jest exhausted tylko gdy konieczne — mogą wtedy bronić lub atakować kolejnych wrogów w tej samej fazie walki.
+
+---
+
 ### Plugging in an agent
 
 ```python
@@ -153,24 +259,14 @@ card = CARDS[Allies.Wandering_Took].copy()  # independent instance, safe to muta
 
 ## Tests
 
-167 tests covering card classes, all 7 phases, agents, and game/table integration:
-
 ```bash
+conda activate lotr-cg-implementation
 python -m pytest -vq
 ```
 
-Tests are organised by topic:
-
-```
-tests/
-├── agents/        # ExpertAgent decisions (questing, planning, combat) + RandomAgent contracts
-├── cards/         # Card class behaviour and hierarchy
-├── game/phases/   # Phase mechanics (no agent substitution)
-├── game/          # Full-round Game integration
-└── table/         # Table state and win/lose conditions
-```
+167 testów pokrywa klasy kart, wszystkie 7 faz, agentów i integrację Table/Game.
 
 ## Requirements
 
-- Python 3.10+
-- `pytest` (dev dependency, install via `.venv`)
+- Python 3.11 (`environment.yml` — środowisko conda `lotr-cg-implementation`)
+- `pytest` (doinstaluj: `pip install pytest`)
