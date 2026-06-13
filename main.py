@@ -15,9 +15,30 @@ parser.add_argument(
     choices=AGENTS,
     help="Agent to use (default: expert)",
 )
+parser.add_argument(
+    "--log", "-l",
+    action="store_true",
+    help="Enable verbose logging to stdout",
+)
+parser.add_argument(
+    "--logfile", "-lf",
+    action="store_true",
+    help="Enable verbose logging to logs/game-log-{id}-{date}.txt",
+)
 args = parser.parse_args()
 
-game = Game(agent=AGENTS[args.agent]())
+agent = AGENTS[args.agent]()
+
+if args.log or args.logfile:
+    from logger import Logger, default_log_path
+    from agents.logging_agent import LoggingAgent
+    from src.game.logging_game import LoggingGame
+
+    Logger.enable(file_path=default_log_path() if args.logfile else None)
+    game = LoggingGame(agent=LoggingAgent(agent))
+else:
+    game = Game(agent=agent)
+
 while not game.table.check_win_condition() and not game.table.check_lose_condition():
     game.run_round()
 
@@ -25,3 +46,6 @@ if game.table.check_win_condition():
     print("Victory! All quests completed.")
 else:
     print("Defeat! The fellowship has fallen.")
+
+if args.log or args.logfile:
+    Logger.close()
