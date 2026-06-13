@@ -13,49 +13,86 @@ Dokument porównuje aktualną implementację z pełnymi zasadami gry
 | Faza zasobów: +1 zasób/bohater, dobierz kartę | `resources_phase.py` |
 | Faza planowania: zagraj sojuszników (najtańszego pierwszego) | `planning_phase.py` |
 | Faza questa: willpower vs staging threat, progress, awans questa | `quest_phase.py` |
-| Faza podróży: podróż do lokacji, koszt podróży | `travel_phase.py` |
-| Faza spotkań: reveal karty, automatyczne angażowanie wrogów | `encounter_phase.py` |
-| Faza walki: atak wroga (najlepszy obrońca), atak gracza (wszyscy) | `combat_phase.py` |
+| Faza podróży: podróż do lokacji, koszt podróży, delegacja wyboru do agenta | `travel_phase.py` |
+| Faza spotkań: reveal karty, optional engagement (agent), auto-engage wrogów | `encounter_phase.py` |
+| Faza walki: atak wroga (obrona/chump/undefended), atak gracza (minimalni atakujący) | `combat_phase.py` |
 | Faza odnowienia: odśwież postacie, +1 threat | `refresh_phase.py` |
 | Hierarchia kart: BaseCard, Creature, Enemy, PlayerCreature, Hero, Ally | `src/cards/` |
 | Quest, Location, ProgressObjective | `src/cards/progress_objective/` |
 | Warunek przegranej: threat ≥ 50 lub wszyscy bohaterowie martwi | `src/table/table.py` |
+| Warunek wygranej: quest_deck pusty (wszystkie questy ukończone) | `src/table/table.py`, `main.py` |
 | Wzorzec `_choose_*()` do nadpisania przez AI agentów | wszystkie fazy |
+| ExpertAgent: heurystyczny agent (quest all, chump block, minimalni atakujący) | `agents/expert_agent.py` |
+| RandomAgent | `agents/random_agent.py` |
+| Argparse wybór agenta z linii poleceń | `main.py` |
 
 ---
 
 ## Znalezione błędy (bugs)
 
-### KRYTYCZNY — `encounter_phase.staging_threat()`
-```python
-# encounter_phase.py — to jest BŁĄD
-def staging_threat(self):
-    threat = sum(card.threat for card in self.table.encounter_staging)
-    self.table.table_threat += threat  # dodaje threat permanentnie każdą rundę!
-```
-Staging threat NIE podnosi `table_threat` gracza. W zasadach gry wpływa tylko na wynik questa:
-jeśli `willpower < staging_threat` → gracz traci `(staging_threat - willpower)` punktów zagrożenia.
-Ta logika jest już **poprawnie** zaimplementowana w `quest_phase._resolve_quest()`.
-Ta metoda powinna zostać **usunięta** — powoduje podwójne naliczanie.
+### Naprawione
 
-### ŚREDNI — `encounter_phase.reveal_encounter_cards()` — `pop()` zamiast `pop(0)`
+| Bug | Status |
+|---|---|
+| `staging_threat()` permanentnie podnosił `table_threat` | ✅ naprawiony — metoda usunięta |
+| `encounter_deck.pop()` zamiast `pop(0)` | ✅ naprawiony — `table.reveal_encounter_card()` używa `pop(0)` |
+| `_choose_location()` — `max(loc.progress)` zawsze 0 | ✅ naprawiony — delegacja do agenta; ExpertAgent wybiera `max(loc.threat)` |
+| Warunek wygranej nie istniał | ✅ naprawiony — `check_win_condition()` + pętla w `main.py` |
+
+---
+
+### Nowo zidentyfikowane
+
+#### KRYTYCZNY — `Table.__init__()` — płytkie kopie list (shared state)
+
+`Table.__init__` robi `hero_pool.copy()`, `player_deck.copy()`, `encounter_deck.copy()`, `quest_deck.copy()` — to są **płytkie kopie list**, nie kopie obiektów wewnątrz. Wszystkie instancje `Table` dzielą te same obiekty kart:
+
 ```python
-card = self.table.encounter_deck.pop()   # pobiera z KOŃCA talii
+# Table.__init__ — BUG
+self.player_heroes  = hero_pool.copy()       # nowa lista, ale te same obiekty Hero
+self.encounter_deck = encounter_deck.copy()  # nowa lista, ale te same obiekty Enemy/Location
+self.quest_deck     = quest_deck.copy()      # nowa lista, ale te same obiekty Quest
+```
+
+Jeśli gra zmodyfikuje HP wroga lub postęp questa, kolejna instancja `Table` zobaczy zmodyfikowane obiekty. `conftest.py` ma częściowy workaround (tworzy nowych bohaterów ręcznie), ale `quest_deck`, `player_deck`, `encounter_deck` nadal są podatne.
+
+```python
+# Poprawna implementacja:
+self.player_heroes  = [hero.copy() for hero in hero_pool]
+self.player_deck    = [card.copy() for card in player_deck]
+self.encounter_deck = [card.copy() for card in encounter_deck]
+self.quest_deck     = [card.copy() for card in quest_deck]
+```
+
+#### ŚREDNI — `EncounterPhase._optional_engagement()` — niezgodność z zasadami (limit 1 wroga)
+
+Zasady: w kroku optional engagement każdy gracz może zaangażować **jednego** wroga.
+Implementacja: `_choose_optional_engagement()` zwraca `list[Enemy]` — agent może zaangażować dowolną liczbę.
+
+```python
+# base_agent.py — niezgodna sygnatura
+def choose_optional_engagement(...) -> list[Enemy]:  # powinno być Enemy | None
+```
+
+#### NISKI — `EncounterPhase._optional_engagement()` — brak ochrony przed duplikatem w liście
+
+Jeśli agent zwróci tego samego wroga dwa razy, drugie `_engage()` wyrzuci `ValueError` przy `encounter_staging.remove(enemy)`. Poprawka: sprawdzić `if enemy in self.table.encounter_staging` przed wywołaniem `_engage()`.
+
+#### NISKI — `RefreshPhase.ready_player_characters()` — martwy kod
+
+Iteruje po `questing + attacking + defending`, ale te listy są zawsze puste w momencie wykonania RefreshPhase:
+- `questing` jest czyszczone przez `QuestPhase.execute()` przed TravelPhase
+- `attacking` i `defending` są czyszczone przez `CombatPhase.execute()` przed RefreshPhase
+
+Efektywnie `ready_player_characters()` readies tylko `player_heroes + player_board`.
+
+#### NISKI — `ExpertAgent.choose_defender()` — `hasattr` zamiast `isinstance`
+
+```python
+allies = [c for c in available if hasattr(c, "cost")]  # kruche duck typing
 # powinno być:
-card = self.table.encounter_deck.pop(0)  # pobiera z POCZĄTKU (jak w table.draw_player_card)
+allies = [c for c in available if isinstance(c, Ally)]
 ```
-
-### ŚREDNI — `travel_phase._choose_location()` — zła logika wyboru
-```python
-return max(eligible, key=lambda loc: loc.progress)  # progress startuje od 0 dla wszystkich
-```
-Wybiera lokację z największym aktualnym postępem (zawsze 0 na starcie).
-Powinno być `loc.required_progress` (wybierz lokację, którą najłatwiej ukończyć)
-lub `loc.required_progress - loc.progress` (wybierz najbliższą ukończenia).
-
-### NISKI — Warunek wygranej nie istnieje
-`main.py` nigdy nie sprawdza, czy gracz wygrał (ukończył wszystkie questy).
-Pętla `while not game.table.check_lose_condition()` kończy się tylko przegraną.
 
 ---
 
@@ -139,7 +176,7 @@ W zasadach zasoby z bohatera danej sfery mogą opłacać tylko karty tej samej s
 (lub Neutral). Aktualnie `PlanningPhase` używa sumy zasobów ze wszystkich bohaterów bez weryfikacji sfery.
 
 ```python
-# aktualna implementacja (błędna):
+# aktualna implementacja (uproszczona):
 def _total_resources(self) -> int:
     return sum(hero.resource_pool for hero in self.table.player_heroes)
 
@@ -153,10 +190,6 @@ def _total_resources(self) -> int:
 - **Forced**: efekt wymuszony w konkretnym momencie rundy
 - **Response**: efekt uruchamiany w odpowiedzi na zdarzenie
 
-### Optional Engagement — brak
-W fazie spotkań gracz może **opcjonalnie** wybrać wroga z staging area do angażowania,
-zanim nastąpi automatyczne angażowanie przez próg zagrożenia. Implementacja ma tylko automatyczne.
-
 ---
 
 ## Brakujące dane w config
@@ -167,7 +200,7 @@ zanim nastąpi automatyczne angażowanie przez próg zagrożenia. Implementacja 
 | Attachment karty w `player_deck` | W scenariuszu brak, ale klasa `Attachment` jest potrzebna |
 | Event karty w `player_deck` | *Gandalf* i inne karty mają wersje Event |
 | Sfery `Leadership` i `Lore` | Zdefiniowane są tylko Spirit, Tactics, Neutral |
-| Mechanizm duplikatów w talii | `all_cards_deck.py` ma `all_cards_dict` ale nie jest używany do budowania talii z duplikatami |
+| Duplikaty kart w talii | Scenariusz wymaga wielu kopii tych samych kart; `decks.py` ma po 1 kopii każdej |
 
 ---
 
@@ -187,16 +220,14 @@ Dla uzyskania grywalnej symulacji (singleplayer, 1 scenariusz):
 
 | Priorytet | Zadanie |
 |---|---|
-| 🔴 KRYTYCZNY | Napraw bug `staging_threat()` w `encounter_phase.py` |
-| 🔴 KRYTYCZNY | Dodaj warunek wygranej (ukończenie wszystkich kart questa) |
 | 🟠 WYSOKI | Zaimplementuj karty Treachery + rozpatrzenie "When Revealed" |
 | 🟠 WYSOKI | Zaimplementuj Shadow Cards w fazie walki |
 | 🟠 WYSOKI | Dodaj keyword **Surge** (bardzo częsty w kartach encounter) |
+| 🟠 WYSOKI | Dodaj duplikaty kart do `decks.py` (1 kopia każdej to za mało) |
 | 🟡 ŚREDNI | Sphere resource matching |
 | 🟡 ŚREDNI | Keyword **Doomed X** i **Archery X** |
 | 🟡 ŚREDNI | Klasa Attachment + Event + ich wsparcie w Planning Phase |
 | 🟢 NISKI | Keyword Toughness, Indestructible, Regenerate, Battle, Siege |
-| 🟢 NISKI | Optional engagement |
 | 🟢 NISKI | Action windows |
 | ⚪ OPCJONALNY | Tryb wieloosobowy (Sentinel, Ranged, kolejność graczy) |
 | ⚪ OPCJONALNY | Side Quests, Objective cards |
