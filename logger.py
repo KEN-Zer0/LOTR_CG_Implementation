@@ -3,18 +3,17 @@ from datetime import datetime
 from pathlib import Path
 from typing import TextIO
 
-LOGS_DIR        = Path("logs")
-_LOG_PREFIX     = "game-log"
-_LOG_GLOB       = f"{_LOG_PREFIX}-*.txt"
-_LOG_DT_FORMAT  = "%d-%m-%Y-%H-%M"
+from config.log_constants import LOGS_DIR, LOG_PREFIX, LOG_GLOB, LOG_DT_FORMAT
 
 
 def default_log_path() -> Path:
     """Return an auto-generated log path and ensure the logs directory exists."""
     LOGS_DIR.mkdir(exist_ok=True)
-    log_id = len(list(LOGS_DIR.glob(_LOG_GLOB))) + 1
-    dt = datetime.now().strftime(_LOG_DT_FORMAT)
-    return LOGS_DIR / f"{_LOG_PREFIX}-{log_id:04d}-{dt}.txt"
+
+    log_id = len(list(LOGS_DIR.glob(LOG_GLOB))) + 1
+    dt = datetime.now().strftime(LOG_DT_FORMAT)
+
+    return LOGS_DIR / f"{LOG_PREFIX}-{log_id:04d}-{dt}.txt"
 
 
 class Logger:
@@ -26,6 +25,7 @@ class Logger:
     @classmethod
     def enable(cls, file_path: str | Path | None = None) -> None:
         cls._enabled = True
+
         if file_path:
             path = Path(file_path)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -49,4 +49,5 @@ class Logger:
         if cls._file:
             cls._file.close()
             cls._file = None
+
         cls._enabled = False

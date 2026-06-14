@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from agents.base_agent import BaseAgent
@@ -15,6 +16,13 @@ def _name(card) -> str:
     return n.name if hasattr(n, "name") else str(n)
 
 
+def _sphere_tokens(game_state: Table) -> str:
+    pools: dict[str, int] = defaultdict(int)
+    for h in game_state.player_heroes:
+        pools[_name(h.sphere_of_influence)] += h.resource_pool
+    return "  ".join(f"{sphere}: {count}" for sphere, count in pools.items())
+
+
 class LoggingAgent(BaseAgent):
     """Wraps any BaseAgent and logs every decision through Logger."""
 
@@ -26,18 +34,18 @@ class LoggingAgent(BaseAgent):
     ) -> list[Hero | Ally]:
         chosen = self._agent.choose_questing_characters(game_state, available)
         names = [_name(c) for c in chosen]
-        Logger.log(f"    questers ({len(chosen)}/{len(available)}): {names or '—'}")
+        Logger.log(f"(Agent) [questers ({len(chosen)}/{len(available)}): {names or '—'}]")
         return chosen
 
     def choose_card_to_play(
         self, game_state: Table, playable: list[Ally]
     ) -> Ally | None:
         card = self._agent.choose_card_to_play(game_state, playable)
+        tokens = _sphere_tokens(game_state)
         if card:
-            resources = sum(h.resource_pool for h in game_state.player_heroes)
-            Logger.log(f"    played: {_name(card)} (cost {card.cost}, resources {resources})")
+            Logger.log(f"(Agent) [played: {_name(card)} (cost {card.cost}) | {tokens}]")
         else:
-            Logger.log(f"    planning: pass")
+            Logger.log(f"(Agent) [planning: pass | {tokens}]")
         return card
 
     def choose_location(
@@ -45,9 +53,9 @@ class LoggingAgent(BaseAgent):
     ) -> Location | None:
         location = self._agent.choose_location(game_state, eligible)
         if location:
-            Logger.log(f"    travel to: {_name(location)} (threat {location.threat}, requires {location.required_progress} progress)")
+            Logger.log(f"(Agent) [travel to: {_name(location)} (threat {location.threat}, requires {location.required_progress} progress)]")
         else:
-            Logger.log(f"    travel: pass")
+            Logger.log(f"(Agent) [travel: pass]")
         return location
 
     def choose_optional_engagement(
@@ -55,7 +63,7 @@ class LoggingAgent(BaseAgent):
     ) -> list[Enemy]:
         chosen = self._agent.choose_optional_engagement(game_state, available)
         if chosen:
-            Logger.log(f"    optional engagement: {[_name(e) for e in chosen]}")
+            Logger.log(f"(Agent) [optional engagement: {[_name(e) for e in chosen]}]")
         return chosen
 
     def choose_defender(
@@ -64,16 +72,16 @@ class LoggingAgent(BaseAgent):
         defender = self._agent.choose_defender(game_state, enemy, available)
         if defender:
             dmg = max(0, enemy.attack - defender.defense)
-            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) attacks — defender: {_name(defender)} (def {defender.defense}, hp {defender.hit_points}) -> damage: {dmg}")
+            Logger.log(f"(Agent) [{_name(enemy)} (atk {enemy.attack}) attacks — defender: {_name(defender)} (def {defender.defense}, hp {defender.hit_points}) -> damage: {dmg}]")
         else:
-            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) attacks — undefended")
+            Logger.log(f"(Agent) [{_name(enemy)} (atk {enemy.attack}) attacks — undefended]")
         return defender
 
     def choose_undefended_target(
         self, game_state: Table, enemy: Enemy
     ) -> Hero:
         hero = self._agent.choose_undefended_target(game_state, enemy)
-        Logger.log(f"    undefended attack target: {_name(hero)} (hp {hero.hit_points})")
+        Logger.log(f"(Agent) [undefended attack target: {_name(hero)} (hp {hero.hit_points})]")
         return hero
 
     def choose_attackers(
@@ -84,10 +92,10 @@ class LoggingAgent(BaseAgent):
             total_atk = sum(a.attack for a in attackers)
             dmg = max(0, total_atk - enemy.defense)
             Logger.log(
-                f"    attack on {_name(enemy)} (def {enemy.defense}, hp {enemy.hit_points})"
+                f"(Agent) [attack on {_name(enemy)} (def {enemy.defense}, hp {enemy.hit_points})"
                 f" — attackers: {[_name(a) for a in attackers]}"
-                f" (total atk {total_atk} -> damage: {dmg})"
+                f" (total atk {total_atk} -> damage: {dmg})]"
             )
         else:
-            Logger.log(f"    no attack on {_name(enemy)}")
+            Logger.log(f"(Agent) [no attack on {_name(enemy)}]")
         return attackers

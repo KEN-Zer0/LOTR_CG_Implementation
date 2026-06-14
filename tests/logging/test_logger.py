@@ -1,5 +1,6 @@
 import pytest
-from logger import Logger, default_log_path, _LOG_PREFIX
+from config.log_constants import LOG_PREFIX
+from logger import Logger, default_log_path
 
 
 @pytest.fixture(autouse=True)
@@ -115,7 +116,7 @@ class TestDefaultLogPath:
     def test_filename_contains_prefix(self, tmp_path, monkeypatch):
         import logger as lg
         monkeypatch.setattr(lg, "LOGS_DIR", tmp_path / "logs")
-        assert _LOG_PREFIX in default_log_path().name
+        assert LOG_PREFIX in default_log_path().name
 
     def test_creates_logs_directory(self, tmp_path, monkeypatch):
         import logger as lg
