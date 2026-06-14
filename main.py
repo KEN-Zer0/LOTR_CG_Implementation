@@ -2,6 +2,9 @@ import argparse
 from src.game.game import Game
 from agents import RandomAgent, ExpertAgent
 
+VICTORY_MSG = "Victory! All quests completed."
+DEFEAT_MSG  = "Defeat! The fellowship has fallen."
+
 AGENTS = {
     "expert": ExpertAgent,
     "random": RandomAgent,
@@ -42,10 +45,9 @@ else:
 while not game.table.check_win_condition() and not game.table.check_lose_condition():
     game.run_round()
 
-if game.table.check_win_condition():
-    print("Victory! All quests completed.")
-else:
-    print("Defeat! The fellowship has fallen.")
+is_victory = game.table.check_win_condition()
+print(VICTORY_MSG if is_victory else DEFEAT_MSG)
 
 if args.log or args.logfile:
+    game.log_summary(is_victory)
     Logger.close()

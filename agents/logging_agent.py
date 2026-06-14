@@ -35,7 +35,7 @@ class LoggingAgent(BaseAgent):
         card = self._agent.choose_card_to_play(game_state, playable)
         if card:
             resources = sum(h.resource_pool for h in game_state.player_heroes)
-            Logger.log(f"    zagrano: {_name(card)} (koszt {card.cost}, zasoby {resources})")
+            Logger.log(f"    played: {_name(card)} (cost {card.cost}, resources {resources})")
         else:
             Logger.log(f"    planning: pass")
         return card
@@ -45,9 +45,9 @@ class LoggingAgent(BaseAgent):
     ) -> Location | None:
         location = self._agent.choose_location(game_state, eligible)
         if location:
-            Logger.log(f"    podróż do: {_name(location)} (threat {location.threat}, potrzeba {location.required_progress} postępu)")
+            Logger.log(f"    travel to: {_name(location)} (threat {location.threat}, requires {location.required_progress} progress)")
         else:
-            Logger.log(f"    podróż: pass")
+            Logger.log(f"    travel: pass")
         return location
 
     def choose_optional_engagement(
@@ -55,7 +55,7 @@ class LoggingAgent(BaseAgent):
     ) -> list[Enemy]:
         chosen = self._agent.choose_optional_engagement(game_state, available)
         if chosen:
-            Logger.log(f"    opcjonalne zaangażowanie: {[_name(e) for e in chosen]}")
+            Logger.log(f"    optional engagement: {[_name(e) for e in chosen]}")
         return chosen
 
     def choose_defender(
@@ -64,16 +64,16 @@ class LoggingAgent(BaseAgent):
         defender = self._agent.choose_defender(game_state, enemy, available)
         if defender:
             dmg = max(0, enemy.attack - defender.defense)
-            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) atakuje — obrońca: {_name(defender)} (def {defender.defense}, hp {defender.hit_points}) → obrażenia: {dmg}")
+            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) attacks — defender: {_name(defender)} (def {defender.defense}, hp {defender.hit_points}) -> damage: {dmg}")
         else:
-            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) atakuje — atak niezablokowany")
+            Logger.log(f"    {_name(enemy)} (atk {enemy.attack}) attacks — undefended")
         return defender
 
     def choose_undefended_target(
         self, game_state: Table, enemy: Enemy
     ) -> Hero:
         hero = self._agent.choose_undefended_target(game_state, enemy)
-        Logger.log(f"    cel niezablokowanego ataku: {_name(hero)} (hp {hero.hit_points})")
+        Logger.log(f"    undefended attack target: {_name(hero)} (hp {hero.hit_points})")
         return hero
 
     def choose_attackers(
@@ -84,10 +84,10 @@ class LoggingAgent(BaseAgent):
             total_atk = sum(a.attack for a in attackers)
             dmg = max(0, total_atk - enemy.defense)
             Logger.log(
-                f"    atak na {_name(enemy)} (def {enemy.defense}, hp {enemy.hit_points})"
-                f" — atakują: {[_name(a) for a in attackers]}"
-                f" (Σatk {total_atk} → obrażenia: {dmg})"
+                f"    attack on {_name(enemy)} (def {enemy.defense}, hp {enemy.hit_points})"
+                f" — attackers: {[_name(a) for a in attackers]}"
+                f" (total atk {total_atk} -> damage: {dmg})"
             )
         else:
-            Logger.log(f"    brak ataku na {_name(enemy)}")
+            Logger.log(f"    no attack on {_name(enemy)}")
         return attackers
