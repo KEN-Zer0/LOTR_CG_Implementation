@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class ExpertAgent(BaseAgent):
     """Heuristic agent driven by hardcoded if/else logic.
 
-    Quest phase  : commit all available characters (maximise willpower).
+    Quest phase  : commit all available characters with willpower > 0.
     Planning     : always play the cheapest affordable card first.
     Travel       : travel to the location with the highest threat to shrink staging.
     Engagement   : never voluntarily engage (let forced engagement handle it).
@@ -26,7 +26,7 @@ class ExpertAgent(BaseAgent):
     def choose_questing_characters(
         self, game_state: Table, available: list[Hero | Ally]
     ) -> list[Hero | Ally]:
-        return available
+        return [c for c in available if c.willpower > 0]
 
     def choose_card_to_play(
         self, game_state: Table, playable: list[Ally]

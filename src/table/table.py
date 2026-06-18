@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 from config.limited.decks import hero_pool, encounter_deck, player_deck, quest_deck
 from config.constants import GameConstants, PlayerEngagementType
@@ -29,9 +30,7 @@ class Table:
 
         # QUEST
 
-        self.quest_deck: list[Quest] = (
-            quest_deck.copy()
-        )
+        self.quest_deck: list[Quest] = deepcopy(quest_deck)
 
         self.active_travel_location: Location | None = None
 

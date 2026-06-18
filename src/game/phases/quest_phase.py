@@ -100,16 +100,20 @@ class QuestPhase(Phase):
         return 0
 
     def _progress_quest(self, progress: int) -> None:
-        """Add progress tokens to the current quest card and advance the quest if completed.
+        """Add progress tokens to the current quest card, advance if completed, and carry overflow.
 
         Args:
             progress (int): Number of progress tokens to place on the quest.
         """
         quest = self.table.get_current_quest()
-        quest.place_progress_token(progress)
+        needed = quest.required_progress - quest.progress
+        quest.place_progress_token(min(progress, needed))
 
-        if quest.progress >= quest.required_progress:
+        if quest.is_complete():
+            overflow = progress - needed
             self._advance_quest()
+            if overflow > 0 and self.table.quest_deck:
+                self._progress_quest(overflow)
 
     def _advance_quest(self) -> None:
         """Remove the completed quest card; the next card in the deck becomes active."""

@@ -3,7 +3,8 @@ import pytest
 from config.limited.cards_list import Heroes, Allies, Enemies, Locations, Sphere
 from config.log_constants import SnapshotKey, StatKey, PhaseKey
 from logger import Logger
-from src.game.logging_game import LoggingGame, _HeroSnap, _AllySnap
+from src.game.logging_game import LoggingGame
+from src.game.log_formatters import _HeroSnap, _AllySnap
 
 
 @pytest.fixture(autouse=True)

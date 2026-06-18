@@ -1,116 +1,18 @@
-from collections import Counter, defaultdict
-from typing import NamedTuple
+from collections import Counter
 
 from config.log_constants import (
     ROUND_SEPARATOR, STATS_SEPARATOR, PHASE_FILL,
     NEW_MARKER, BULLET, INDENT,
-    CardState, PhaseKey, StatKey, SnapshotKey,
+    PhaseKey, StatKey, SnapshotKey,
 )
 from src.game.game import Game
+from src.game.log_formatters import (
+    _name, _HeroSnap, _AllySnap, _HandSnap,
+    _fmt_hero, _fmt_ally, _fmt_hero_diff, _fmt_ally_diff,
+    _sphere_totals, _fmt_staging_card_stats, _bullet_line,
+)
 from logger import Logger
 
-
-def _name(x) -> str:
-    """Convert a card object, Enum value, or fallback string to a display name."""
-    if isinstance(x, str):
-        return x
-    n = x.name
-    if isinstance(n, str):
-        return n
-    return n.name if hasattr(n, "name") else str(n)
-
-
-def _state(exhausted: bool) -> str:
-    return CardState.EXHAUSTED if exhausted else CardState.READY
-
-
-# ── Snapshot types ─────────────────────────────────────────────
-
-class _HeroSnap(NamedTuple):
-    name:      object
-    hp:        int
-    max_hp:    int
-    res:       int
-    exhausted: bool
-    sphere:    object
-    willpower: int
-
-
-class _AllySnap(NamedTuple):
-    name:      object
-    hp:        int
-    max_hp:    int
-    exhausted: bool
-    willpower: int
-
-
-class _HandSnap(NamedTuple):
-    name: object
-    cost: int
-
-
-# ── Formatters ─────────────────────────────────────────────────
-
-def _fmt_hero(snap: _HeroSnap) -> str:
-    return (
-        f"{_name(snap.name)} [{_name(snap.sphere)}]"
-        f" hp={snap.hp}/{snap.max_hp}"
-        f" wp={snap.willpower}"
-        f" res={snap.res}"
-        f" {_state(snap.exhausted)}"
-    )
-
-
-def _fmt_ally(snap: _AllySnap, new: bool = False) -> str:
-    suffix = NEW_MARKER if new else ""
-    return (
-        f"{_name(snap.name)}"
-        f" hp={snap.hp}/{snap.max_hp}"
-        f" wp={snap.willpower}"
-        f" {_state(snap.exhausted)}{suffix}"
-    )
-
-
-def _fmt_hero_diff(prev: _HeroSnap | None, curr: _HeroSnap) -> str:
-    if prev is None:
-        return _fmt_hero(curr)
-
-    changes = []
-    if prev.hp != curr.hp:
-        changes.append(f"hp {prev.hp}->{curr.hp}")
-    if prev.res != curr.res:
-        changes.append(f"res {prev.res}->{curr.res}")
-    if prev.exhausted != curr.exhausted:
-        changes.append(f"{_state(prev.exhausted)}->{_state(curr.exhausted)}")
-
-    if not changes:
-        return _fmt_hero(curr)
-    return f"{_name(curr.name)}: " + "  ".join(changes)
-
-
-def _fmt_ally_diff(prev: _AllySnap | None, curr: _AllySnap) -> str:
-    if prev is None:
-        return _fmt_ally(curr, new=True)
-
-    changes = []
-    if prev.hp != curr.hp:
-        changes.append(f"hp {prev.hp}->{curr.hp}")
-    if prev.exhausted != curr.exhausted:
-        changes.append(f"{_state(prev.exhausted)}->{_state(curr.exhausted)}")
-
-    if not changes:
-        return _fmt_ally(curr)
-    return f"{_name(curr.name)}: " + "  ".join(changes)
-
-
-def _sphere_totals(heroes: list[_HeroSnap]) -> dict[str, int]:
-    result: dict[str, int] = defaultdict(int)
-    for h in heroes:
-        result[_name(h.sphere)] += h.res
-    return dict(result)
-
-
-# ── Game ───────────────────────────────────────────────────────
 
 class LoggingGame(Game):
     """Subclass of Game that prints a detailed log of every round and phase."""
@@ -161,7 +63,7 @@ class LoggingGame(Game):
                 Logger.log(f"    {_name(c.name)} (cost {c.cost})")
 
         staging_threat = sum(c.threat for c in self.table.encounter_staging)
-        Logger.log(f"  Staging: (total threat {staging_threat})")
+        Logger.log(f"  Staging: (staging threat: {staging_threat})")
         if not self.table.encounter_staging:
             Logger.log(f"    (empty)")
         else:
@@ -217,163 +119,184 @@ class LoggingGame(Game):
         self._update_stats(before, after, phase_name)
         any_change = False
 
-        # Planning: sphere token breakdown before -> after
         if phase_name == PhaseKey.PLANNING:
-            before_spheres = _sphere_totals(before[SnapshotKey.HEROES])
-            after_spheres  = _sphere_totals(after[SnapshotKey.HEROES])
-
-            if before_spheres != after_spheres:
-                any_change = True
-                parts = []
-                for sphere in sorted(set(before_spheres) | set(after_spheres)):
-                    b = before_spheres.get(sphere, 0)
-                    a = after_spheres.get(sphere, 0)
-                    parts.append(f"{sphere}: {b}->{a}" if b != a else f"{sphere}: {b}")
-                Logger.log(f"{BULLET}resources: {'  '.join(parts)}")
-
-        # Travel: always log active location state
+            any_change |= self._diff_planning_resources(before, after)
         if phase_name == PhaseKey.TRAVEL:
+            self._log_travel_state()
             any_change = True
-            loc = self.table.active_travel_location
-            if loc:
-                Logger.log(f"{BULLET}Active location: {_name(loc.name)} ({loc.progress}/{loc.required_progress})")
-            else:
-                Logger.log(f"{BULLET}Active location: none")
-
-        # Combat: always log staging (with engagement cost) and engaged enemies
         if phase_name == PhaseKey.COMBAT:
-            any_change = True
             self._log_combat_state()
+            any_change = True
 
-        # Heroes — skipped in PlanningPhase (only resource spending happens there)
+        any_change |= self._diff_heroes(before, after, phase_name)
+        any_change |= self._diff_board(before, after, phase_name)
+        any_change |= self._diff_hand(before, after)
+        any_change |= self._diff_threat(before, after)
+        any_change |= self._diff_quest(before, after)
+        any_change |= self._diff_location(before, after)
+        any_change |= self._diff_staging(before, after)
+        any_change |= self._diff_engaged(before, after)
+
+        if not any_change:
+            Logger.log(f"{BULLET}(no changes)")
+
+    def _diff_planning_resources(self, before: dict, after: dict) -> bool:
+        before_spheres = _sphere_totals(before[SnapshotKey.HEROES])
+        after_spheres  = _sphere_totals(after[SnapshotKey.HEROES])
+        if before_spheres == after_spheres:
+            return False
+        parts = []
+        for sphere in sorted(set(before_spheres) | set(after_spheres)):
+            b = before_spheres.get(sphere, 0)
+            a = after_spheres.get(sphere, 0)
+            parts.append(f"{sphere}: {b}->{a}" if b != a else f"{sphere}: {b}")
+        Logger.log(f"{BULLET}resources: {'  '.join(parts)}")
+        return True
+
+    def _diff_heroes(self, before: dict, after: dict, phase_name: str) -> bool:
         before_hero_map = {s.name: s for s in before[SnapshotKey.HEROES]}
         after_hero_map  = {s.name: s for s in after[SnapshotKey.HEROES]}
+        if before_hero_map == after_hero_map or phase_name == PhaseKey.PLANNING:
+            return False
+        for name in before_hero_map:
+            if name not in after_hero_map:
+                Logger.log(f"{BULLET}{_name(name)} DIED")
+        for snap in after[SnapshotKey.HEROES]:
+            prev = before_hero_map.get(snap.name)
+            if prev != snap:
+                Logger.log(f"{BULLET}{_fmt_hero_diff(prev, snap)}")
+        return True
 
-        if before_hero_map != after_hero_map and phase_name != PhaseKey.PLANNING:
-            any_change = True
-            for name in before_hero_map:
-                if name not in after_hero_map:
-                    Logger.log(f"{BULLET}{_name(name)} DIED")
-            for snap in after[SnapshotKey.HEROES]:
-                prev = before_hero_map.get(snap.name)
-                if prev != snap:
-                    Logger.log(f"{BULLET}{_fmt_hero_diff(prev, snap)}")
-
-        # Board (allies) — per-field diffs, new allies marked # New!
+    def _diff_board(self, before: dict, after: dict, phase_name: str) -> bool:
         before_ally_map = {s.name: s for s in before[SnapshotKey.BOARD]}
         after_ally_map  = {s.name: s for s in after[SnapshotKey.BOARD]}
+        if before_ally_map == after_ally_map:
+            return False
+        for name in before_ally_map:
+            if name not in after_ally_map:
+                Logger.log(f"{BULLET}ally {_name(name)} died")
+        if phase_name == PhaseKey.PLANNING:
+            Logger.log(f"{BULLET}Board:")
+            for snap in after[SnapshotKey.BOARD]:
+                new = snap.name not in before_ally_map
+                Logger.log(f"{INDENT}{_fmt_ally(snap, new=new)}")
+        else:
+            for snap in after[SnapshotKey.BOARD]:
+                prev = before_ally_map.get(snap.name)
+                if prev is None or prev != snap:
+                    Logger.log(f"{BULLET}{_fmt_ally_diff(prev, snap)}")
+        return True
 
-        if before_ally_map != after_ally_map:
-            any_change = True
-            for name in before_ally_map:
-                if name not in after_ally_map:
-                    Logger.log(f"{BULLET}ally {_name(name)} died")
-            if phase_name == PhaseKey.PLANNING:
-                Logger.log(f"{BULLET}Board:")
-                for snap in after[SnapshotKey.BOARD]:
-                    new = snap.name not in before_ally_map
-                    Logger.log(f"{INDENT}{_fmt_ally(snap, new=new)}")
-            else:
-                for snap in after[SnapshotKey.BOARD]:
-                    prev = before_ally_map.get(snap.name)
-                    if prev is None or prev != snap:
-                        Logger.log(f"{BULLET}{_fmt_ally_diff(prev, snap)}")
-
-        # Hand — each card on its own line
+    def _diff_hand(self, before: dict, after: dict) -> bool:
         before_hand = before[SnapshotKey.HAND]
         after_hand  = after[SnapshotKey.HAND]
+        if before_hand == after_hand:
+            return False
+        before_hand_names = {s.name for s in before_hand}
+        Logger.log(f"{BULLET}Hand:")
+        if after_hand:
+            for s in after_hand:
+                marker = NEW_MARKER if s.name not in before_hand_names else ""
+                Logger.log(f"{INDENT}{_name(s.name)} (cost {s.cost}){marker}")
+        else:
+            Logger.log(f"{INDENT}(empty)")
+        return True
 
-        if before_hand != after_hand:
-            any_change = True
-            before_hand_names = {s.name for s in before_hand}
-            Logger.log(f"{BULLET}Hand:")
-            if after_hand:
-                for s in after_hand:
-                    marker = NEW_MARKER if s.name not in before_hand_names else ""
-                    Logger.log(f"{INDENT}{_name(s.name)} (cost {s.cost}){marker}")
-            else:
-                Logger.log(f"{INDENT}(empty)")
+    def _diff_threat(self, before: dict, after: dict) -> bool:
+        if after[SnapshotKey.THREAT] == before[SnapshotKey.THREAT]:
+            return False
+        Logger.log(f"{BULLET}threat: {before[SnapshotKey.THREAT]} -> {after[SnapshotKey.THREAT]}")
+        return True
 
-        # Threat
-        if after[SnapshotKey.THREAT] != before[SnapshotKey.THREAT]:
-            any_change = True
-            Logger.log(f"{BULLET}threat: {before[SnapshotKey.THREAT]} -> {after[SnapshotKey.THREAT]}")
-
-        # Quest progress / completion
+    def _diff_quest(self, before: dict, after: dict) -> bool:
         if after[SnapshotKey.QUEST_NAME] != before[SnapshotKey.QUEST_NAME]:
-            if before[SnapshotKey.QUEST_NAME]:
-                any_change = True
-                after_qn = _name(after[SnapshotKey.QUEST_NAME]) if after[SnapshotKey.QUEST_NAME] else "END"
-                Logger.log(f"{BULLET}quest completed: {_name(before[SnapshotKey.QUEST_NAME])} -> {after_qn}")
-        elif (after[SnapshotKey.QUEST_PROGRESS] != before[SnapshotKey.QUEST_PROGRESS]
-              and after[SnapshotKey.QUEST_PROGRESS] is not None):
-            any_change = True
+            if not before[SnapshotKey.QUEST_NAME]:
+                return False
+            after_qn = _name(after[SnapshotKey.QUEST_NAME]) if after[SnapshotKey.QUEST_NAME] else "END"
+            overflow = after[SnapshotKey.QUEST_PROGRESS] or 0
+            overflow_str = f" ({overflow} tokens carry over)" if overflow > 0 else ""
+            Logger.log(f"{BULLET}quest completed: {_name(before[SnapshotKey.QUEST_NAME])} -> {after_qn}{overflow_str}")
+            return True
+        if (after[SnapshotKey.QUEST_PROGRESS] != before[SnapshotKey.QUEST_PROGRESS]
+                and after[SnapshotKey.QUEST_PROGRESS] is not None):
             Logger.log(
                 f"{BULLET}quest progress:"
                 f" {before[SnapshotKey.QUEST_PROGRESS]}/{after[SnapshotKey.QUEST_REQUIRED]}"
                 f" -> {after[SnapshotKey.QUEST_PROGRESS]}/{after[SnapshotKey.QUEST_REQUIRED]}"
             )
+            return True
+        return False
 
-        # Location — progress change, cleared, appeared
-        if before[SnapshotKey.ACTIVE_LOC] and before[SnapshotKey.ACTIVE_LOC] == after[SnapshotKey.ACTIVE_LOC]:
-            if after[SnapshotKey.ACTIVE_LOC_PROGRESS] != before[SnapshotKey.ACTIVE_LOC_PROGRESS]:
-                any_change = True
-                Logger.log(
-                    f"{BULLET}location {_name(before[SnapshotKey.ACTIVE_LOC])} progress:"
-                    f" {before[SnapshotKey.ACTIVE_LOC_PROGRESS]} -> {after[SnapshotKey.ACTIVE_LOC_PROGRESS]}"
-                )
-
+    def _diff_location(self, before: dict, after: dict) -> bool:
+        changed = False
+        if (before[SnapshotKey.ACTIVE_LOC]
+                and before[SnapshotKey.ACTIVE_LOC] == after[SnapshotKey.ACTIVE_LOC]
+                and after[SnapshotKey.ACTIVE_LOC_PROGRESS] != before[SnapshotKey.ACTIVE_LOC_PROGRESS]):
+            Logger.log(
+                f"{BULLET}location {_name(before[SnapshotKey.ACTIVE_LOC])} progress:"
+                f" {before[SnapshotKey.ACTIVE_LOC_PROGRESS]} -> {after[SnapshotKey.ACTIVE_LOC_PROGRESS]}"
+            )
+            changed = True
         if before[SnapshotKey.ACTIVE_LOC] and not after[SnapshotKey.ACTIVE_LOC]:
-            any_change = True
             Logger.log(f"{BULLET}location cleared: {_name(before[SnapshotKey.ACTIVE_LOC])}")
-
+            changed = True
         if not before[SnapshotKey.ACTIVE_LOC] and after[SnapshotKey.ACTIVE_LOC]:
-            any_change = True
             Logger.log(f"{BULLET}active location: {_name(after[SnapshotKey.ACTIVE_LOC])}")
+            changed = True
+        return changed
 
-        # Staging — revealed / removed
+    def _diff_staging(self, before: dict, after: dict) -> bool:
         before_staging = Counter(before[SnapshotKey.STAGING])
         after_staging  = Counter(after[SnapshotKey.STAGING])
+        changed = False
 
         for name, count in (after_staging - before_staging).items():
-            any_change = True
             card = next((c for c in self.table.encounter_staging if c.name == name), None)
-            eng_str = f" (eng {card.engagement})" if card and hasattr(card, "engagement") else ""
-            label = f"revealed: {_name(name)}{eng_str}"
-            Logger.log(f"{BULLET}{label} x{count}" if count > 1 else f"{BULLET}{label}")
+            stats = _fmt_staging_card_stats(card)
+            suffix = f" [{stats}]" if stats else ""
+            Logger.log(_bullet_line(f"revealed: {_name(name)}{suffix}{NEW_MARKER}", count))
+            changed = True
 
         for name, count in (before_staging - after_staging).items():
-            any_change = True
-            label = f"removed from staging: {_name(name)}"
-            Logger.log(f"{BULLET}{label} x{count}" if count > 1 else f"{BULLET}{label}")
+            Logger.log(_bullet_line(f"removed from staging: {_name(name)}", count))
+            changed = True
 
-        # Engaged — new engagements, HP changes, defeats
+        return changed
+
+    def _diff_engaged(self, before: dict, after: dict) -> bool:
         before_engaged = dict(before[SnapshotKey.ENGAGED])
         after_engaged  = dict(after[SnapshotKey.ENGAGED])
+        changed = False
 
         for name in after_engaged:
             if name not in before_engaged:
-                any_change = True
-                Logger.log(f"{BULLET}engaged: {_name(name)} (hp {after_engaged[name]})")
+                Logger.log(f"{BULLET}engaged: {_name(name)} (hp {after_engaged[name]}){NEW_MARKER}")
+                changed = True
 
         for name, hp in before_engaged.items():
             if name not in after_engaged:
-                any_change = True
                 Logger.log(f"{BULLET}enemy defeated: {_name(name)}")
+                changed = True
             elif after_engaged[name] != hp:
-                any_change = True
                 Logger.log(f"{BULLET}{_name(name)} hp: {hp} -> {after_engaged[name]}")
+                changed = True
 
-        if not any_change:
-            Logger.log(f"{BULLET}(no changes)")
+        return changed
 
-    # ── Combat state (always shown in CombatPhase) ─────────────
+    # ── Travel / Combat state ──────────────────────────────────
+
+    def _log_travel_state(self) -> None:
+        loc = self.table.active_travel_location
+        if loc:
+            Logger.log(f"{BULLET}Active location: {_name(loc.name)} ({loc.progress}/{loc.required_progress})")
+        else:
+            Logger.log(f"{BULLET}Active location: none")
 
     def _log_combat_state(self) -> None:
         threat = self.table.table_threat
 
         staging_threat = sum(c.threat for c in self.table.encounter_staging)
-        Logger.log(f"{BULLET}Staging: (total threat {staging_threat})")
+        Logger.log(f"{BULLET}Staging: (staging threat: {staging_threat})")
         if not self.table.encounter_staging:
             Logger.log(f"{INDENT}(empty)")
         else:
@@ -382,7 +305,7 @@ class LoggingGame(Game):
                     cmp = ">=" if card.engagement <= threat else "<"
                     Logger.log(
                         f"{INDENT}{_name(card.name)} [enemy]"
-                        f" eng={card.engagement} vs threat={threat} ({cmp}threshold)"
+                        f" engagement_cost={card.engagement} vs threat={threat} ({cmp}threshold)"
                     )
                 else:
                     Logger.log(f"{INDENT}{_name(card.name)} [location] threat={card.threat}")
@@ -440,7 +363,12 @@ class LoggingGame(Game):
     # ── Summary ────────────────────────────────────────────────
 
     def log_summary(self, is_victory: bool) -> None:
-        outcome = "VICTORY" if is_victory else "DEFEAT"
+        if is_victory:
+            outcome = "VICTORY"
+        elif self.table.is_threat_too_high():
+            outcome = "DEFEAT — Threat reached 50"
+        else:
+            outcome = "DEFEAT — All heroes dead"
 
         Logger.log(f"\n{ROUND_SEPARATOR}")
         Logger.log(f"  GAME STATISTICS")

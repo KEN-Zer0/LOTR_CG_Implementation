@@ -78,6 +78,18 @@ def test_progress_overflow_from_location_to_quest(table):
     assert quest.progress == initial_progress + 3
 
 
+def test_progress_overflow_from_quest_to_next_quest(table):
+    """Excess progress tokens cascade through quests until a quest absorbs them."""
+    phase = QuestPhase(table)
+    quest = table.get_current_quest()
+    quest._progress = quest.required_progress - 1  # 1 token fills quest 1 (req=8), overflow=5
+    initial_deck_size = len(table.quest_deck)
+    phase.execute()
+    # overflow=5 also completes quest 2 (req=2), remaining 3 land on quest 3 (req=10)
+    assert len(table.quest_deck) < initial_deck_size
+    assert table.get_current_quest().progress == 3
+
+
 def test_questing_list_cleared_after_phase(table):
     """The questing list is empty after execute completes."""
     phase = QuestPhase(table)
