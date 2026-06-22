@@ -39,12 +39,11 @@ def test_exhaust_mechanism():
 
 
 def test_is_alive_at_zero_hp():
-    """Verify that creature is still alive at exactly 0 HP."""
+    """Verify that creature at exactly 0 HP is considered dead (is_alive returns False)."""
     hero = create_hero()
 
-    # Simulate taking damage until 0 HP remains
     hero._hit_points = 0
-    assert hero.is_alive() is True
+    assert hero.is_alive() is False
 
 
 def test_is_dead_below_zero():

@@ -15,6 +15,9 @@ class CombatPhase(Phase):
        - Player declares one or more attackers (exhausted).
        - Damage = max(0, sum of attacker.attack - enemy.defense)
        - Enemies reduced to 0 hit points are defeated and removed.
+
+    All _choose_* methods receive the current available pool explicitly so that
+    subclasses (e.g. AI agents) do not need to replicate the ready-character query.
     """
 
     def execute(self):
@@ -34,11 +37,14 @@ class CombatPhase(Phase):
 
     def _resolve_enemy_attack(self, enemy: Enemy) -> None:
         """Resolves a single enemy attack: defender declaration then damage."""
-        defender = self._choose_defender(enemy)
+        available = self._get_ready_characters()
+        defender = self._choose_defender(enemy, available)
 
         if defender is not None:
             self._resolve_defended_attack(enemy, defender)
         else:
+            if not self.table.player_heroes:
+                return
             hero = self._choose_undefended_target(enemy)
             self._resolve_undefended_attack(enemy, hero)
 
@@ -50,37 +56,42 @@ class CombatPhase(Phase):
         damage = max(0, enemy.attack - defender.defense)
         if damage > 0:
             defender.take_damage(damage)
-            if defender.is_dead() and isinstance(defender, Ally):
-                self.table.player_board.remove(defender)
+            if defender.is_dead():
+                if isinstance(defender, Ally):
+                    self.table.player_board.remove(defender)
+                else:
+                    self.table.player_heroes.remove(defender)
 
     def _resolve_undefended_attack(self, enemy: Enemy, hero: Hero) -> None:
         """Deals full unblocked enemy attack directly to a hero."""
-        hero.change_hp(-enemy.attack)
+        hero.take_damage(enemy.attack)
+        if hero.is_dead():
+            self.table.player_heroes.remove(hero)
 
     # --- Defender selection ---
 
-    def _choose_defender(self, enemy: Enemy) -> Hero | Ally | None:
-        """
-        Selects a defender for the given enemy attack.
+    def _choose_defender(self, enemy: Enemy, available: list[Hero | Ally]) -> Hero | Ally | None:
+        """Delegates to the table's agent.
 
-        Override this method to implement custom selection logic,
-        e.g. for an AI agent. Return None to leave the attack undefended.
-        Default: the ready character with the highest defense value.
+        Args:
+            enemy (Enemy): The enemy that is attacking.
+            available (list[Hero | Ally]): Characters that are currently ready.
+
+        Returns:
+            Hero | Ally | None: The chosen defender, or None for an undefended attack.
         """
-        ready = self._get_ready_characters()
-        if not ready:
-            return None
-        return max(ready, key=lambda c: c.defense)
+        return self.table.agent.choose_defender(self.table, enemy, available)
 
     def _choose_undefended_target(self, enemy: Enemy) -> Hero:
-        """
-        Selects a hero to receive an undefended attack.
+        """Delegates to the table's agent.
 
-        Override this method to implement custom selection logic,
-        e.g. for an AI agent.
-        Default: the hero with the most remaining hit points.
+        Args:
+            enemy (Enemy): The enemy delivering the undefended attack.
+
+        Returns:
+            Hero: The hero that will absorb the full damage.
         """
-        return max(self.table.player_heroes, key=lambda h: h.hit_points)
+        return self.table.agent.choose_undefended_target(self.table, enemy)
 
     # ==========================================================================
     # Player attacks
@@ -93,7 +104,8 @@ class CombatPhase(Phase):
 
     def _resolve_player_attack(self, enemy: Enemy) -> None:
         """Resolves a single player attack: attacker declaration then damage."""
-        attackers = self._choose_attackers(enemy)
+        available = self._get_ready_characters()
+        attackers = self._choose_attackers(enemy, available)
         if not attackers:
             return
 
@@ -107,18 +119,21 @@ class CombatPhase(Phase):
 
         if enemy.is_dead():
             self.table.encounter_engagement.remove(enemy)
+            self.table.encounter_discard.append(enemy)
 
     # --- Attacker selection ---
 
-    def _choose_attackers(self, enemy: Enemy) -> list[Hero | Ally]:
-        """
-        Selects characters that will attack the given enemy.
+    def _choose_attackers(self, enemy: Enemy, available: list[Hero | Ally]) -> list[Hero | Ally]:
+        """Delegates to the table's agent.
 
-        Override this method to implement custom selection logic,
-        e.g. for an AI agent. Return an empty list to skip attacking.
-        Default: all ready characters attack together.
+        Args:
+            enemy (Enemy): The enemy being attacked.
+            available (list[Hero | Ally]): Characters that are currently ready.
+
+        Returns:
+            list[Hero | Ally]: The characters committed to this attack.
         """
-        return self._get_ready_characters()
+        return self.table.agent.choose_attackers(self.table, enemy, available)
 
     # ==========================================================================
     # Helpers

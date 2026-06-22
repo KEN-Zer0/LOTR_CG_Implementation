@@ -2,32 +2,22 @@ from abc import ABC
 
 
 class BaseCard(ABC):
-    """
-    Base class for all card types.
-
-    Parameters
-    ----------
-    name : Enum
-        The enum representation of the card name.
-
-    Attributes
-    ----------
-    _name : Enum
-        Internal storage for the card name.
-    """
+    """Base class for all card types."""
 
     def __init__(self, name):
+        """Initialize the card.
+
+        Args:
+            name (Enum): Enum identifier for this card.
+        """
         self._name = name
 
     @property
     def name(self):
-        """
-        Get the name of the card.
+        """Return the card's enum identifier, or the string "Name empty" if unset.
 
-        Returns
-        -------
-        Enum or str
-            The card name enum, or "Name empty" if the name is not set.
+        Returns:
+            Enum | str: The card name enum or a fallback string.
         """
         if not self._name:
             return "Name empty"

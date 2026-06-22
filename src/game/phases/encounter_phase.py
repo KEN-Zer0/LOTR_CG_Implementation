@@ -3,34 +3,58 @@ from src.cards import Enemy
 
 
 class EncounterPhase(Phase):
+    """
+    Encounter phase:
+    1. Reveal 1 encounter card and place it in the staging area.
+    2. Optional engagement: player may voluntarily engage staging enemies.
+    3. Forced engagement: staging enemies with engagement cost <= table threat auto-engage.
+    """
+
     def execute(self):
-        self.reveal_encounter_cards()
-        self.engagement_check()
-        self.staging_threat()
+        """Reveal one encounter card, handle optional engagement, then auto-engage eligible enemies."""
+        self._reveal_encounter_cards()
+        self._optional_engagement()
+        self._forced_engagement()
 
-    def reveal_encounter_cards(self):
-        # 1 gracz = 1 karta encounter
-        if not self.table.encounter_deck:
-            return
+    # --- Reveal ---
 
-        card = self.table.encounter_deck.pop()
-        self.table.encounter_staging.append(card)
+    def _reveal_encounter_cards(self) -> None:
+        """Reveal the top encounter card and place it in the staging area."""
+        self.table.reveal_encounter_card()
 
-    def engagement_check(self):
-        player_threat = self.table.table_threat
+    # --- Optional engagement ---
 
-        for card in list(self.table.encounter_staging):
-            if not isinstance(card, Enemy):
-                continue
+    def _optional_engagement(self) -> None:
+        """Engage any enemies chosen by _choose_optional_engagement."""
+        available = self._get_staging_enemies()
+        chosen = self._choose_optional_engagement(available)
+        for enemy in chosen:
+            self._engage(enemy)
 
-            if card.engagement <= player_threat:
-                self.table.encounter_engagement.append(card)
-                self.table.encounter_staging.remove(card)
+    def _choose_optional_engagement(self, available: list[Enemy]) -> list[Enemy]:
+        """Delegates to the table's agent.
 
-    def staging_threat(self):
-        # dodaje threat z kart w staging area
-        threat = sum(
-            card.threat for card in self.table.encounter_staging
-        )
+        Args:
+            available (list[Enemy]): Enemies currently in the staging area.
 
-        self.table.table_threat += threat
+        Returns:
+            list[Enemy]: Enemies the player chooses to engage voluntarily.
+        """
+        return self.table.agent.choose_optional_engagement(self.table, available)
+
+    # --- Forced engagement ---
+
+    def _forced_engagement(self) -> None:
+        """Engages all staging enemies whose engagement cost <= current table threat."""
+        for enemy in self._get_staging_enemies():
+            if enemy.engagement <= self.table.table_threat:
+                self._engage(enemy)
+
+    # --- Helpers ---
+
+    def _get_staging_enemies(self) -> list[Enemy]:
+        return [c for c in self.table.encounter_staging if isinstance(c, Enemy)]
+
+    def _engage(self, enemy: Enemy) -> None:
+        self.table.encounter_staging.remove(enemy)
+        self.table.encounter_engagement.append(enemy)

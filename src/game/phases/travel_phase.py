@@ -15,6 +15,7 @@ class TravelPhase(Phase):
     """
 
     def execute(self):
+        """Skip if a location is already active; otherwise let the player travel to one location."""
         if self.table.active_travel_location is not None:
             return
 
@@ -31,14 +32,25 @@ class TravelPhase(Phase):
     # --- Location selection ---
 
     def _get_eligible_locations(self) -> list[Location]:
-        """Returns locations in the staging area whose travel cost can be paid."""
+        """Return locations in the staging area whose travel cost can be paid.
+
+        Returns:
+            list[Location]: Affordable locations from the staging area.
+        """
         return [
             card for card in self.table.encounter_staging
             if isinstance(card, Location) and self._can_afford_travel(card)
         ]
 
     def _can_afford_travel(self, location: Location) -> bool:
-        """Returns True if enough ready heroes are available to pay the travel cost."""
+        """Check whether enough ready heroes are available to pay the travel cost.
+
+        Args:
+            location (Location): The location whose travel cost is being evaluated.
+
+        Returns:
+            bool: True if the travel cost can be paid with currently ready heroes.
+        """
         cost = getattr(location, "travel_cost", 0)
         if cost == 0:
             return True
@@ -46,19 +58,24 @@ class TravelPhase(Phase):
         return len(ready_heroes) >= cost
 
     def _choose_location(self, eligible: list[Location]) -> Location | None:
-        """
-        Selects a location to travel to from the eligible list.
+        """Delegates to the table's agent.
 
-        Override this method to implement custom selection logic,
-        e.g. for an AI agent. Returns None to pass.
-        Default: travels to the location with the most quest points.
+        Args:
+            eligible (list[Location]): Locations that can be travelled to this round.
+
+        Returns:
+            Location | None: The chosen location, or None to pass.
         """
-        return max(eligible, key=lambda loc: loc.progress)
+        return self.table.agent.choose_location(self.table, eligible)
 
     # --- Travel execution ---
 
     def _travel_to(self, location: Location) -> None:
-        """Pays the travel cost, removes the location from staging, sets it as active."""
+        """Pay the travel cost, remove the location from staging, and set it as active.
+
+        Args:
+            location (Location): The location to travel to.
+        """
         cost = getattr(location, "travel_cost", 0)
         if cost > 0:
             self._pay_travel_cost(cost)
@@ -67,7 +84,11 @@ class TravelPhase(Phase):
         self.table.active_travel_location = location
 
     def _pay_travel_cost(self, cost: int) -> None:
-        """Exhausts the required number of ready heroes to pay the travel cost."""
+        """Exhaust the required number of ready heroes to pay the travel cost.
+
+        Args:
+            cost (int): Number of heroes that must be exhausted.
+        """
         ready_heroes = [h for h in self.table.player_heroes if not h.exhausted]
         for hero in ready_heroes[:cost]:
             hero.exhaust()
