@@ -11,7 +11,7 @@ from src.game.log_formatters import (
     _fmt_hero, _fmt_ally, _fmt_hero_diff, _fmt_ally_diff,
     _sphere_totals, _fmt_staging_card_stats, _bullet_line,
 )
-from logger import Logger
+from src.logging.logger import Logger
 
 
 class LoggingGame(Game):

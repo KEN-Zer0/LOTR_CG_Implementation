@@ -36,13 +36,9 @@ class Table:
 
         # PLAYER
 
-        self.player_deck: list[Ally] = (
-            player_deck.copy()
-        )
+        self.player_deck: list[Ally] = deepcopy(player_deck)
 
-        self.player_heroes: list[Hero] = (
-            hero_pool.copy()
-        )
+        self.player_heroes: list[Hero] = deepcopy(hero_pool)
 
         self.player_hand: list[Ally] = []
 
@@ -64,9 +60,7 @@ class Table:
 
         # ENCOUNTER
 
-        self.encounter_deck: list[Enemy | Location] = (
-            encounter_deck.copy()
-        )
+        self.encounter_deck: list[Enemy | Location] = deepcopy(encounter_deck)
 
         self.encounter_staging: list[Enemy | Location] = []
 

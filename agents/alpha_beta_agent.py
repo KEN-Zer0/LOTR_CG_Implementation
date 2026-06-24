@@ -17,13 +17,12 @@ def _power_set(lst: list) -> chain:
 
 
 class AlphaBetaAgent(BaseAgent):
-    """Minimax agent: player decisions are MAX nodes, encounter reveals are MIN nodes.
+    """Two-ply minimax agent with alpha-beta pruning.
 
-    The questing decision enumerates all 2^N character subsets and selects the
-    one that maximises the analytically-estimated position score (no deepcopy
-    needed — only the quest progress / threat delta and the expected combat
-    outcome change between subsets). All other decision points use direct
-    heuristic evaluation.
+    Player decisions are MAX nodes; encounter reveals are MIN nodes.
+    The questing phase enumerates all 2^N character subsets (MAX) and for
+    each subset finds the worst-case encounter reveal (MIN) with alpha cutoff.
+    All other decision points use direct heuristic evaluation.
     """
 
     # ── Position evaluator ───────────────────────────────────────────────────
@@ -63,21 +62,66 @@ class AlphaBetaAgent(BaseAgent):
 
         return score
 
-    # ── Questing: full subset search (analytical, no deepcopy) ───────────────
+    # ── Questing: 2-ply alpha-beta minimax ──────────────────────────────────
 
     def choose_questing_characters(
         self, game_state: Table, available: list
     ) -> list:
         staging_threat = sum(c.threat for c in game_state.encounter_staging)
-        base = self._evaluate(game_state)
+        base_score = self._evaluate(game_state)
+        # Most-dangerous cards first → MIN finds low beta sooner → more alpha cuts
+        deck = sorted(game_state.encounter_deck, key=lambda c: self._card_danger(game_state, c))
+        # Highest-willpower subsets first → alpha rises early → fewer MIN loops run to completion
+        subsets = sorted(_power_set(available), key=lambda s: sum(c.willpower for c in s), reverse=True)
 
-        best_score, best_subset = -inf, []
-        for subset in _power_set(available):
-            score = base + self._quest_delta(game_state, subset, staging_threat)
-            if score > best_score:
-                best_score, best_subset = score, list(subset)
+        alpha, best = -inf, []
+        for subset in subsets:
+            score = self._min_encounter(game_state, subset, staging_threat, alpha, base_score, deck)
+            if score > alpha:
+                alpha, best = score, list(subset)
+        return best
 
-        return best_subset
+    def _min_encounter(
+        self, state: Table, questers: tuple, staging_threat: int,
+        alpha: float, base_score: float, deck: list
+    ) -> float:
+        """MIN node: worst-case encounter reveal after questers commit."""
+        quest_score = base_score + self._quest_delta(state, questers, staging_threat)
+        if not deck:
+            return quest_score
+        beta = inf
+        for card in deck:
+            score = quest_score + self._reveal_delta(state, questers, card)
+            if score < beta:
+                beta = score
+            if beta <= alpha:
+                return beta
+        return beta
+
+    def _card_danger(self, state: Table, card) -> float:
+        """Danger level of revealing this card; lower = more dangerous, so sort ascending."""
+        is_enemy = hasattr(card, 'engagement')
+        if is_enemy and card.engagement <= state.table_threat:
+            return -(card.attack * 3.0 + card.hit_points)
+        return -(card.threat * 2.0)
+
+    def _reveal_delta(self, state: Table, questers: tuple, card) -> float:
+        """Score impact of revealing this encounter card.
+
+        Enemies that auto-engage (engagement <= table_threat) are evaluated
+        via combat estimate against remaining non-questing characters.
+        All other cards contribute only their staging threat penalty.
+        """
+        is_enemy = hasattr(card, 'engagement')
+        if not is_enemy or card.engagement > state.table_threat:
+            return -(card.threat * 2.0)
+
+        qnames = {c.name for c in questers}
+        fighters = [
+            c for c in state.player_heroes + state.player_board
+            if c.name not in qnames and not c.exhausted
+        ]
+        return self._combat_estimate(fighters, [card])
 
     def _quest_delta(
         self, state: Table, questers: tuple, staging_threat: int
@@ -98,14 +142,13 @@ class AlphaBetaAgent(BaseAgent):
                 if m <= 6:
                     delta += sign * (7 - m) ** 2 * 5.0
 
-        # Questers are exhausted and cannot fight — penalise when enemies are waiting.
         if state.encounter_engagement:
             qnames = {c.name for c in questers}
             fighters = [
                 c for c in state.player_heroes + state.player_board
                 if c.name not in qnames and not c.exhausted
             ]
-            delta += self._combat_estimate(state, fighters)
+            delta += self._combat_estimate(fighters, state.encounter_engagement)
 
         return delta
 
@@ -121,26 +164,26 @@ class AlphaBetaAgent(BaseAgent):
             delta += applied * 3.0
             remaining -= applied
             if applied >= needed:
-                delta += 5.0  # Location cleared — direct quest progress resumes
+                delta += 5.0
 
         if remaining > 0 and state.quest_deck:
             quest = state.get_current_quest()
             needed = quest.required_progress - quest.progress
             applied = min(remaining, needed)
-            delta += applied * 9.5  # (+8 progress, -1.5 remaining gap)
+            delta += applied * 9.5
             if applied >= needed and len(state.quest_deck) == 1:
-                return 10_000.0  # Win condition reached
+                return 10_000.0
 
         return delta
 
-    def _combat_estimate(self, state: Table, fighters: list) -> float:
-        """Expected combat score with these fighters against all engaged enemies."""
+    def _combat_estimate(self, fighters: list, enemies: list) -> float:
+        """Expected combat score with fighters against given enemies."""
         total_atk = sum(c.attack for c in fighters)
         defenders = sorted(fighters, key=lambda c: c.defense, reverse=True)
-        enemies = sorted(state.encounter_engagement, key=lambda e: e.attack, reverse=True)
+        enemies_sorted = sorted(enemies, key=lambda e: e.attack, reverse=True)
 
         score = 0.0
-        for i, enemy in enumerate(enemies):
+        for i, enemy in enumerate(enemies_sorted):
             best_def = defenders[i].defense if i < len(defenders) else 0
             score -= max(0, enemy.attack - best_def) * 1.5
             if total_atk - enemy.defense >= enemy.hit_points:
@@ -155,7 +198,6 @@ class AlphaBetaAgent(BaseAgent):
     ) -> Ally | None:
         if not playable:
             return None
-        # Prefer higher total board contribution per resource spent.
         return max(playable, key=lambda a: (a.attack * 2 + a.defense + a.willpower) / max(a.cost, 1))
 
     # ── Travel ───────────────────────────────────────────────────────────────
@@ -195,9 +237,9 @@ class AlphaBetaAgent(BaseAgent):
             is_ally = hasattr(defender, 'cost')
 
             if dmg == 0:
-                score = 50.0  # Perfect block
+                score = 50.0
             elif is_ally and dmg >= defender.hit_points:
-                score = 10.0  # Chump block: ally dies, heroes spared
+                score = 10.0
             else:
                 score = (defender.hit_points - dmg) * (1.5 if is_ally else 4.0)
 

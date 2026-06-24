@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from agents.base_agent import BaseAgent
-from logger import Logger
+from src.logging.logger import Logger
 
 if TYPE_CHECKING:
     from src.table import Table

@@ -35,7 +35,7 @@ args = parser.parse_args()
 agent = AGENTS[args.agent]()
 
 if args.log or args.logfile:
-    from logger import Logger, default_log_path
+    from src.logging.logger import Logger, default_log_path
     from agents.logging_agent import LoggingAgent
     from src.game.logging_game import LoggingGame
 
