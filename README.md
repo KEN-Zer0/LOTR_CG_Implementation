@@ -6,6 +6,26 @@ A Python simulation of the cooperative **Lord of the Rings Living Card Game** (F
 
 The simulator implements the full 7-phase round structure of the LOTR LCG, configured for the **Passage through Mirkwood** scenario from the Core Set. Agents follow the **Strategy Pattern**: swap decision-making logic without touching any phase or game code.
 
+## Current status
+
+- Core game loop, phases, card hierarchy, and agent system are implemented.
+- The current automated test suite is passing: 280 tests passed as of 2026-06-24.
+- The main remaining work is in advanced card rules and interaction mechanics, not in the basic single-player engine.
+
+## Setup
+
+```bash
+conda env create -f environment.yml
+conda activate lotr-cg-implementation
+python main.py
+```
+
+Run tests with:
+
+```bash
+python -m pytest -q
+```
+
 ## Scenario
 
 **Passage through Mirkwood**
@@ -24,6 +44,8 @@ LOTR_CG_Implementation/
 ├── main.py                      # Entry point (argparse: expert / random / alphabeta)
 ├── config/
 │   ├── constants.py             # GameConstants, PlayerEngagementType
+│   ├── log_constants.py         # Logging constants
+│   ├── scenarios/
 │   └── limited/
 │       ├── cards_list.py        # Enums: Heroes, Allies, Enemies, Locations, Quests, Sphere
 │       ├── cards_registry.py    # CARDS dict — single source of truth for all card prototypes
@@ -32,8 +54,9 @@ LOTR_CG_Implementation/
 │   ├── base_agent.py            # BaseAgent ABC — 7 abstract decision methods
 │   ├── expert_agent.py          # ExpertAgent — heuristic greedy strategy
 │   ├── alpha_beta_agent.py      # AlphaBetaAgent — 2-ply minimax with alpha-beta pruning
-│   └── random_agent.py          # RandomAgent — fully random decisions
-└── src/
+│   ├── random_agent.py          # RandomAgent — fully random decisions
+│   └── logging_agent.py         # Agent wrapper with logging support
+├── src/
     ├── cards/
     │   ├── base_card.py
     │   ├── creatures/
@@ -49,6 +72,8 @@ LOTR_CG_Implementation/
     │       └── location.py               # threat contribution, travel_cost
     ├── game/
     │   ├── game.py                       # Phase orchestration, Game(agent=...) entry point
+    │   ├── logging_game.py               # Game wrapper with logging support
+    │   ├── log_formatters.py             # Logging formatting helpers
     │   └── phases/
     │       ├── phase.py
     │       ├── resources_phase.py
@@ -58,8 +83,11 @@ LOTR_CG_Implementation/
     │       ├── encounter_phase.py
     │       ├── combat_phase.py
     │       └── refresh_phase.py
+    ├── logging/
+    │   └── logger.py
     └── table/
         └── table.py                      # Full mutable game state
+├── tests/                           # Automated pytest suite
 ```
 
 ## Card Hierarchy
@@ -138,7 +166,7 @@ Dla każdego podzbioru questujących agent sprawdza każdą kartę w encounter_d
 
 **Węzeł MAX:** iteracja po wszystkich 2^N podzbiorach dostępnych postaci.
 
-**Węzeł MIN (`_min_encounter_after_quest`):** dla każdego podzbioru przeszukuje całą encounter_deck szukając karty, która da najgorszy wynik po odsłonięciu. Alpha cut przerwie MIN-loop gdy znaleziony wynik jest już gorszy niż najlepsza opcja z wyższego poziomu.
+**Węzeł MIN (`_min_encounter`):** dla każdego podzbioru przeszukuje całą encounter_deck szukając karty, która da najgorszy wynik po odsłonięciu. Alpha cut przerwie MIN-loop gdy znaleziony wynik jest już gorszy niż najlepsza opcja z wyższego poziomu.
 
 **Optymalizacje przycinania:**
 - `_evaluate(state)` obliczany raz dla wszystkich podzbiorów (stan się nie zmienia w trakcie przeszukiwania)

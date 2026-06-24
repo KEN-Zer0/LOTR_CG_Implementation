@@ -28,7 +28,7 @@ class EncounterPhase(Phase):
         """Engage any enemies chosen by _choose_optional_engagement."""
         available = self._get_staging_enemies()
         chosen = self._choose_optional_engagement(available)
-        for enemy in chosen:
+        for enemy in dict.fromkeys(chosen):
             self._engage(enemy)
 
     def _choose_optional_engagement(self, available: list[Enemy]) -> list[Enemy]:

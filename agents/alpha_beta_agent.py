@@ -89,9 +89,14 @@ class AlphaBetaAgent(BaseAgent):
         quest_score = base_score + self._quest_delta(state, questers, staging_threat)
         if not deck:
             return quest_score
+        qnames = {c.name for c in questers}
+        fighters = [
+            c for c in state.player_heroes + state.player_board
+            if c.name not in qnames and not c.exhausted
+        ]
         beta = inf
         for card in deck:
-            score = quest_score + self._reveal_delta(state, questers, card)
+            score = quest_score + self._reveal_delta(state, card, fighters)
             if score < beta:
                 beta = score
             if beta <= alpha:
@@ -105,7 +110,7 @@ class AlphaBetaAgent(BaseAgent):
             return -(card.attack * 3.0 + card.hit_points)
         return -(card.threat * 2.0)
 
-    def _reveal_delta(self, state: Table, questers: tuple, card) -> float:
+    def _reveal_delta(self, state: Table, card, fighters: list) -> float:
         """Score impact of revealing this encounter card.
 
         Enemies that auto-engage (engagement <= table_threat) are evaluated
@@ -115,12 +120,6 @@ class AlphaBetaAgent(BaseAgent):
         is_enemy = hasattr(card, 'engagement')
         if not is_enemy or card.engagement > state.table_threat:
             return -(card.threat * 2.0)
-
-        qnames = {c.name for c in questers}
-        fighters = [
-            c for c in state.player_heroes + state.player_board
-            if c.name not in qnames and not c.exhausted
-        ]
         return self._combat_estimate(fighters, [card])
 
     def _quest_delta(
@@ -178,7 +177,7 @@ class AlphaBetaAgent(BaseAgent):
 
     def _combat_estimate(self, fighters: list, enemies: list) -> float:
         """Expected combat score with fighters against given enemies."""
-        total_atk = sum(c.attack for c in fighters)
+        remaining_atk = sum(c.attack for c in fighters)
         defenders = sorted(fighters, key=lambda c: c.defense, reverse=True)
         enemies_sorted = sorted(enemies, key=lambda e: e.attack, reverse=True)
 
@@ -186,8 +185,10 @@ class AlphaBetaAgent(BaseAgent):
         for i, enemy in enumerate(enemies_sorted):
             best_def = defenders[i].defense if i < len(defenders) else 0
             score -= max(0, enemy.attack - best_def) * 1.5
-            if total_atk - enemy.defense >= enemy.hit_points:
+            kill_cost = enemy.defense + enemy.hit_points
+            if remaining_atk >= kill_cost:
                 score += 4.0
+                remaining_atk -= kill_cost
 
         return score
 
