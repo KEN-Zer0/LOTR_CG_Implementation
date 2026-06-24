@@ -15,6 +15,7 @@ class Game:
             agent: Decision-making strategy to use. Defaults to ExpertAgent.
         """
         self.table = Table(agent=agent or ExpertAgent())
+        self.table.setup()
 
         self.phases = [
             ResourcesPhase(self.table),

@@ -1,6 +1,6 @@
 import argparse
 from src.game.game import Game
-from agents import RandomAgent, ExpertAgent
+from agents import RandomAgent, ExpertAgent, AlphaBetaAgent
 
 VICTORY_MSG   = "Victory! All quests completed."
 THREAT_DEFEAT = "Defeat! Threat reached 50."
@@ -9,6 +9,7 @@ HEROES_DEFEAT = "Defeat! All heroes are dead."
 AGENTS = {
     "expert": ExpertAgent,
     "random": RandomAgent,
+    "alphabeta": AlphaBetaAgent,
 }
 
 parser = argparse.ArgumentParser(description="LOTR Card Game")
