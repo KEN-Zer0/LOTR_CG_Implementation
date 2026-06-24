@@ -36,13 +36,9 @@ class Table:
 
         # PLAYER
 
-        self.player_deck: list[Ally] = (
-            player_deck.copy()
-        )
+        self.player_deck: list[Ally] = deepcopy(player_deck)
 
-        self.player_heroes: list[Hero] = (
-            hero_pool.copy()
-        )
+        self.player_heroes: list[Hero] = deepcopy(hero_pool)
 
         self.player_hand: list[Ally] = []
 
@@ -64,9 +60,7 @@ class Table:
 
         # ENCOUNTER
 
-        self.encounter_deck: list[Enemy | Location] = (
-            encounter_deck.copy()
-        )
+        self.encounter_deck: list[Enemy | Location] = deepcopy(encounter_deck)
 
         self.encounter_staging: list[Enemy | Location] = []
 
@@ -76,6 +70,17 @@ class Table:
 
         self.calculate_table_threat()
         self.shuffle_decks()
+
+    def setup(self) -> None:
+        """Apply scenario-specific setup rules before the first round.
+
+        Looks up the active scenario from the top quest card and delegates
+        to the matching ScenarioSetup via apply_setup().
+        """
+        from config.scenarios import SCENARIOS, apply_setup
+        scenario = self.get_current_quest().scenario
+        if scenario in SCENARIOS:
+            apply_setup(self, SCENARIOS[scenario])
 
     def calculate_table_threat(self):
         """Set table_threat to the sum of all hero threat values."""

@@ -3,7 +3,7 @@ from agents.base_agent import BaseAgent
 from agents.logging_agent import LoggingAgent
 from config.limited.cards_registry import CARDS
 from config.limited.cards_list import Allies, Enemies, Locations
-from logger import Logger
+from src.logging.logger import Logger
 
 
 class _FixedAgent(BaseAgent):

@@ -15,15 +15,8 @@ class RefreshPhase(Phase):
         character.ready()
 
     def ready_player_characters(self):
-        """Ready every hero and ally across heroes, board, and all engagement lists."""
-        all_characters = (
-                self.table.player_heroes
-                + self.table.player_board
-                + self.table.questing
-                + self.table.attacking
-                + self.table.defending
-        )
-        for character in all_characters:
+        """Ready every hero and ally on the board."""
+        for character in self.table.player_heroes + self.table.player_board:
             self.ready_character(character)
 
     def raise_threat_level(self):

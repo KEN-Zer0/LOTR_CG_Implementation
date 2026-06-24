@@ -1,6 +1,6 @@
 import pytest
 from config.log_constants import LOG_PREFIX
-from logger import Logger, default_log_path
+from src.logging.logger import Logger, default_log_path
 
 
 @pytest.fixture(autouse=True)
@@ -108,30 +108,30 @@ class TestLoggerClose:
 
 class TestDefaultLogPath:
     def test_returns_txt_file(self, tmp_path, monkeypatch):
-        import logger as lg
+        from src.logging import logger as lg
         monkeypatch.setattr(lg, "LOGS_DIR", tmp_path / "logs")
         path = default_log_path()
         assert path.suffix == ".txt"
 
     def test_filename_contains_prefix(self, tmp_path, monkeypatch):
-        import logger as lg
+        from src.logging import logger as lg
         monkeypatch.setattr(lg, "LOGS_DIR", tmp_path / "logs")
         assert LOG_PREFIX in default_log_path().name
 
     def test_creates_logs_directory(self, tmp_path, monkeypatch):
-        import logger as lg
+        from src.logging import logger as lg
         logs_dir = tmp_path / "logs"
         monkeypatch.setattr(lg, "LOGS_DIR", logs_dir)
         default_log_path()
         assert logs_dir.exists()
 
     def test_id_starts_at_0001(self, tmp_path, monkeypatch):
-        import logger as lg
+        from src.logging import logger as lg
         monkeypatch.setattr(lg, "LOGS_DIR", tmp_path / "logs")
         assert "0001" in default_log_path().name
 
     def test_id_increments_with_existing_files(self, tmp_path, monkeypatch):
-        import logger as lg
+        from src.logging import logger as lg
         logs_dir = tmp_path / "logs"
         logs_dir.mkdir()
         monkeypatch.setattr(lg, "LOGS_DIR", logs_dir)

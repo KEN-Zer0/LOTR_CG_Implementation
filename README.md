@@ -6,6 +6,26 @@ A Python simulation of the cooperative **Lord of the Rings Living Card Game** (F
 
 The simulator implements the full 7-phase round structure of the LOTR LCG, configured for the **Passage through Mirkwood** scenario from the Core Set. Agents follow the **Strategy Pattern**: swap decision-making logic without touching any phase or game code.
 
+## Current status
+
+- Core game loop, phases, card hierarchy, and agent system are implemented.
+- The current automated test suite is passing: 280 tests passed as of 2026-06-24.
+- The main remaining work is in advanced card rules and interaction mechanics, not in the basic single-player engine.
+
+## Setup
+
+```bash
+conda env create -f environment.yml
+conda activate lotr-cg-implementation
+python main.py
+```
+
+Run tests with:
+
+```bash
+python -m pytest -q
+```
+
 ## Scenario
 
 **Passage through Mirkwood**
@@ -21,9 +41,11 @@ The simulator implements the full 7-phase round structure of the LOTR LCG, confi
 
 ```
 LOTR_CG_Implementation/
-├── main.py                      # Entry point (argparse: expert / random)
+├── main.py                      # Entry point (argparse: expert / random / alphabeta)
 ├── config/
 │   ├── constants.py             # GameConstants, PlayerEngagementType
+│   ├── log_constants.py         # Logging constants
+│   ├── scenarios/
 │   └── limited/
 │       ├── cards_list.py        # Enums: Heroes, Allies, Enemies, Locations, Quests, Sphere
 │       ├── cards_registry.py    # CARDS dict — single source of truth for all card prototypes
@@ -31,8 +53,10 @@ LOTR_CG_Implementation/
 ├── agents/
 │   ├── base_agent.py            # BaseAgent ABC — 7 abstract decision methods
 │   ├── expert_agent.py          # ExpertAgent — heuristic greedy strategy
-│   └── random_agent.py          # RandomAgent — fully random decisions
-└── src/
+│   ├── alpha_beta_agent.py      # AlphaBetaAgent — 2-ply minimax with alpha-beta pruning
+│   ├── random_agent.py          # RandomAgent — fully random decisions
+│   └── logging_agent.py         # Agent wrapper with logging support
+├── src/
     ├── cards/
     │   ├── base_card.py
     │   ├── creatures/
@@ -48,6 +72,8 @@ LOTR_CG_Implementation/
     │       └── location.py               # threat contribution, travel_cost
     ├── game/
     │   ├── game.py                       # Phase orchestration, Game(agent=...) entry point
+    │   ├── logging_game.py               # Game wrapper with logging support
+    │   ├── log_formatters.py             # Logging formatting helpers
     │   └── phases/
     │       ├── phase.py
     │       ├── resources_phase.py
@@ -57,8 +83,11 @@ LOTR_CG_Implementation/
     │       ├── encounter_phase.py
     │       ├── combat_phase.py
     │       └── refresh_phase.py
+    ├── logging/
+    │   └── logger.py
     └── table/
         └── table.py                      # Full mutable game state
+├── tests/                           # Automated pytest suite
 ```
 
 ## Card Hierarchy
@@ -90,9 +119,10 @@ BaseCard (name: Enum)
 ## Running
 
 ```bash
-python main.py           # ExpertAgent (default)
-python main.py expert    # ExpertAgent
-python main.py random    # RandomAgent
+python main.py              # ExpertAgent (default)
+python main.py expert       # ExpertAgent
+python main.py random       # RandomAgent
+python main.py alphabeta    # AlphaBetaAgent
 ```
 
 ## Agent System
@@ -108,6 +138,54 @@ All decision points are defined in `BaseAgent` as abstract methods:
 | `choose_defender(state, enemy, available)` | Combat phase | `Hero \| Ally \| None` |
 | `choose_undefended_target(state, enemy)` | Combat phase | `Hero` |
 | `choose_attackers(state, enemy, available)` | Combat phase | `list[Hero \| Ally]` |
+
+### AlphaBetaAgent — 2-ply minimax z alpha-beta pruningiem
+
+#### Architektura algorytmu
+
+Faza questa jest jedyną fazą z prawdziwym przeszukiwaniem drzewa gry. Pozostałe decyzje (planowanie, podróż, walka) używają tych samych heurystyk co ExpertAgent.
+
+```
+MAX node — wybór podzbioru questujących postaci (2^N podzbiorów)
+  └── MIN node — worst-case odsłonięcie karty z encounter_deck
+        └── alpha cut gdy beta ≤ alpha
+```
+
+Dla każdego podzbioru questujących agent sprawdza każdą kartę w encounter_deck i szuka najgorszego możliwego odsłonięcia. `alpha` propagowane z poziomu MAX pozwala ciąć MIN-loop wcześnie.
+
+#### Funkcja oceny — `_evaluate`
+
+```
++ quest.progress × 8        + ally stats (atk+def+wp) × 2    + resources × 0.5
+- threat × 2.5              - enemy.threat (staging) × 2
+- hero.hp × 5               - enemy (engaged): atk×2.5 + hp×1.5
+- kara kwadratowa gdy table_threat ≥ 44
+```
+
+#### Faza questa — pełne 2-ply alpha-beta
+
+**Węzeł MAX:** iteracja po wszystkich 2^N podzbiorach dostępnych postaci.
+
+**Węzeł MIN (`_min_encounter`):** dla każdego podzbioru przeszukuje całą encounter_deck szukając karty, która da najgorszy wynik po odsłonięciu. Alpha cut przerwie MIN-loop gdy znaleziony wynik jest już gorszy niż najlepsza opcja z wyższego poziomu.
+
+**Optymalizacje przycinania:**
+- `_evaluate(state)` obliczany raz dla wszystkich podzbiorów (stan się nie zmienia w trakcie przeszukiwania)
+- Podzbiory sortowane malejąco po willpower — wysokie alpha ustawiane wcześnie, więcej MIN-pętli uciętych
+- Encounter deck sortowany od najgroźniejszej karty (`_card_danger`) — MIN node szybciej obniża betę i triggeruje alpha cut
+
+**`_reveal_delta`** — szacunek wpływu odsłoniętej karty:
+- Wróg z `engagement > table_threat` → idzie do staging, kara `-threat × 2.0`
+- Wróg z `engagement ≤ table_threat` → **auto-angażuje się natychmiast** → oblicz `_combat_estimate` z dostępnymi obrońcami (postacie, które NIE questują)
+- Lokacja → kara `-threat × 2.0`
+
+Kluczowa różnica względem ExpertAgent: gdy encounter_deck zawiera wroga który auto-angażuje (engagement ≤ table_threat), agent uwzględnia, że questujące postacie będą exhausted i nie będą mogły bronić. Utrzymanie obrońców może być ważniejsze niż wysłanie wszystkich na questa.
+
+**Przykład:** staging_threat = 6, table_threat = 25, encounter_deck = [East Bight Patrol (engagement=5)]:
+- Wysłanie wszystkich (wp=6, net=0): zero questujących obrońców → EBP zadaje pełne obrażenia bez obrony
+- Wysłanie tylko Éowyn (wp=4, net=−2, threat+2): Eleanor+Thalin wolni → razem zabijają EBP
+- Minimax wybiera Éowyn, bo worst-case przy EBP jest mniej kosztowny z dwoma obrońcami
+
+---
 
 ### ExpertAgent — szczegółowa taktyka
 
@@ -239,12 +317,15 @@ class MyAgent(BaseAgent):
     # ... implement remaining 5 methods
 ```
 
-### Benchmark (1 000 games each, ~6 s per 100)
+### Benchmark (3 000 games each)
 
-| Agent | Wins | Win rate |
-|-------|------|----------|
-| ExpertAgent | 416 / 1000 | **41.6 %** |
-| RandomAgent | 36 / 1000 | **3.6 %** |
+| Agent | Wins | Win rate | Threat defeats | Hero defeats | Time / 1000 games |
+|-------|------|----------|---------------|-------------|-------------------|
+| AlphaBetaAgent | 2270 / 3000 | **75.7 %** | 0 | 730 | ~2.9 s |
+| ExpertAgent | 1202 / 3000 | **40.1 %** | 0 | 1798 | ~0.3 s |
+| RandomAgent | 2 / 3000 | **0.1 %** | 12 | 2986 | ~0.3 s |
+
+AlphaBetaAgent wygrywa niemal 2× częściej niż ExpertAgent (75.7 % vs 40.1 %) kosztem ~10× wolniejszego czasu na grę. Wszystkie porażki to śmierć bohaterów — threat nigdy nie osiąga 50 przy rozsądnych agentach.
 
 ## Card Registry
 
@@ -264,7 +345,7 @@ conda activate lotr-cg-implementation
 python -m pytest -vq
 ```
 
-167 testów pokrywa klasy kart, wszystkie 7 faz, agentów i integrację Table/Game.
+280 testów pokrywa klasy kart, wszystkie 7 faz, agentów i integrację Table/Game.
 
 ## Requirements
 
