@@ -5,6 +5,7 @@ from config.log_constants import (
     NEW_MARKER, BULLET, INDENT,
     PhaseKey, StatKey, SnapshotKey,
 )
+from agents.base_agent import BaseAgent
 from src.game.game import Game
 from src.game.log_formatters import (
     _name, _HeroSnap, _AllySnap, _HandSnap,
@@ -17,7 +18,7 @@ from src.logging.logger import Logger
 class LoggingGame(Game):
     """Subclass of Game that prints a detailed log of every round and phase."""
 
-    def __init__(self, agent=None):
+    def __init__(self, agent: BaseAgent | None = None) -> None:
         super().__init__(agent=agent)
         self._round = 0
         self._stats = {
@@ -124,6 +125,9 @@ class LoggingGame(Game):
         if phase_name == PhaseKey.TRAVEL:
             self._log_travel_state()
             any_change = True
+        if phase_name == PhaseKey.ENCOUNTER:
+            self._log_encounter_state(before, after)
+            any_change = True
         if phase_name == PhaseKey.COMBAT:
             self._log_combat_state()
             any_change = True
@@ -134,8 +138,9 @@ class LoggingGame(Game):
         any_change |= self._diff_threat(before, after)
         any_change |= self._diff_quest(before, after)
         any_change |= self._diff_location(before, after)
-        any_change |= self._diff_staging(before, after)
-        any_change |= self._diff_engaged(before, after)
+        if phase_name != PhaseKey.ENCOUNTER:
+            any_change |= self._diff_staging(before, after)
+            any_change |= self._diff_engaged(before, after)
 
         if not any_change:
             Logger.log(f"{BULLET}(no changes)")
@@ -283,7 +288,41 @@ class LoggingGame(Game):
 
         return changed
 
-    # ── Travel / Combat state ──────────────────────────────────
+    # ── Travel / Encounter / Combat state ─────────────────────
+
+    def _log_encounter_state(self, before: dict, after: dict) -> None:
+        threat = self.table.table_threat
+        before_staging = set(before[SnapshotKey.STAGING])
+        before_engaged_names = {name for name, _ in before[SnapshotKey.ENGAGED]}
+
+        new_in_staging = [c for c in self.table.encounter_staging if c.name not in before_staging]
+        newly_engaged_from_deck = [
+            e for e in self.table.encounter_engagement
+            if e.name not in before_engaged_names and e.name not in before_staging
+        ]
+        newly_engaged_from_staging = [
+            e for e in self.table.encounter_engagement
+            if e.name not in before_engaged_names and e.name in before_staging
+        ]
+
+        for card in new_in_staging:
+            if hasattr(card, 'engagement'):
+                cmp = "<=" if card.engagement <= threat else ">"
+                Logger.log(f"{BULLET}revealed: {_name(card.name)} [enemy, engagement_cost={card.engagement} {cmp} threat={threat} → staging]")
+            else:
+                Logger.log(f"{BULLET}revealed: {_name(card.name)} [location, threat={card.threat} → staging]")
+
+        for enemy in newly_engaged_from_deck:
+            if enemy.engagement <= threat:
+                Logger.log(f"{BULLET}revealed: {_name(enemy.name)} [enemy, engagement_cost={enemy.engagement} <= threat={threat} → auto-engaged]")
+            else:
+                Logger.log(f"{BULLET}revealed: {_name(enemy.name)} [enemy, engagement_cost={enemy.engagement} > threat={threat} → optional-engaged]")
+
+        for enemy in newly_engaged_from_staging:
+            if enemy.engagement <= threat:
+                Logger.log(f"{BULLET}engaged from staging: {_name(enemy.name)} [forced, engagement_cost={enemy.engagement} <= threat={threat}]")
+            else:
+                Logger.log(f"{BULLET}engaged from staging: {_name(enemy.name)} [optional, engagement_cost={enemy.engagement} > threat={threat}]")
 
     def _log_travel_state(self) -> None:
         loc = self.table.active_travel_location
