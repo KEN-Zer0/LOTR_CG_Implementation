@@ -1,6 +1,7 @@
 name: lotr-cg-implementation
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - python=3.11.15
-prefix: /home/marcin/miniconda3/envs/lotr-cg-implementation
+  - python=3.11
+  - pytest>=8.0
