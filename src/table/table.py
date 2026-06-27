@@ -13,12 +13,13 @@ from src.cards import (
 )
 
 from agents import ExpertAgent
+from agents.base_agent import BaseAgent
 
 
 class Table:
     """Holds the full mutable game state shared by all phases."""
 
-    def __init__(self, agent=None):
+    def __init__(self, agent: BaseAgent | None = None) -> None:
         """Initialize all decks, zones, and lists; calculate starting threat and shuffle decks.
 
         Args:
@@ -82,19 +83,19 @@ class Table:
         if scenario in SCENARIOS:
             apply_setup(self, SCENARIOS[scenario])
 
-    def calculate_table_threat(self):
+    def calculate_table_threat(self) -> None:
         """Set table_threat to the sum of all hero threat values."""
         self.table_threat = 0
 
         for hero in self.player_heroes:
             self.table_threat += hero.threat
 
-    def shuffle_decks(self):
+    def shuffle_decks(self) -> None:
         """Shuffle the player deck and encounter deck in place."""
         random.shuffle(self.player_deck)
         random.shuffle(self.encounter_deck)
 
-    def draw_player_card(self):
+    def draw_player_card(self) -> Ally | None:
         """Pop the top card of the player deck into the player's hand.
 
         Returns:
@@ -109,7 +110,7 @@ class Table:
 
         return card
 
-    def reveal_encounter_card(self):
+    def reveal_encounter_card(self) -> Enemy | Location | None:
         """Pop the top encounter card into the staging area.
 
         When the encounter deck is empty the discard pile is reshuffled into it first.
@@ -128,7 +129,7 @@ class Table:
         self.encounter_staging.append(card)
         return card
 
-    def get_current_quest(self):
+    def get_current_quest(self) -> Quest:
         """Return the top (active) quest card without removing it.
 
         Returns:

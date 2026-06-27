@@ -13,6 +13,6 @@ class Phase(ABC):
         self.table = table
 
     @abstractmethod
-    def execute(self):
+    def execute(self) -> None:
         """Run this phase to completion; must be implemented by each subclass."""
         pass

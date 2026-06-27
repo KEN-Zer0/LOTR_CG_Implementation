@@ -1,10 +1,18 @@
+from __future__ import annotations
+
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.limited.cards_list import Scenario
+
 from .progress_objective import ProgressObjective
 
 
 class Quest(ProgressObjective):
     """A quest card belonging to a specific scenario; completing all quests wins the game."""
 
-    def __init__(self, name, scenario, required_progress):
+    def __init__(self, name: Enum, scenario: Scenario, required_progress: int) -> None:
         """Initialize quest for the given scenario.
 
         Args:
@@ -16,7 +24,7 @@ class Quest(ProgressObjective):
         self._scenario = scenario
 
     @property
-    def scenario(self):
+    def scenario(self) -> Scenario:
         """Scenario: Scenario identifier this quest card belongs to."""
         return self._scenario
 

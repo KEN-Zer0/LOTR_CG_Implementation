@@ -27,7 +27,7 @@ class Game:
             RefreshPhase(self.table)
         ]
 
-    def run_round(self):
+    def run_round(self) -> None:
         """Execute each phase in order, stopping early if the game ends mid-round."""
         for phase in self.phases:
             if self.table.check_win_condition() or self.table.check_lose_condition():

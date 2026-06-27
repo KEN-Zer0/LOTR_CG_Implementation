@@ -1,10 +1,12 @@
+from enum import Enum
+
 from .progress_objective import ProgressObjective
 
 
 class Location(ProgressObjective):
     """A location in the encounter deck that adds staging threat until cleared."""
 
-    def __init__(self, name, threat, required_progress):
+    def __init__(self, name: Enum, threat: int, required_progress: int) -> None:
         """Initialize location with a staging threat value.
 
         Args:
@@ -16,7 +18,7 @@ class Location(ProgressObjective):
         self._threat = threat
 
     @property
-    def threat(self):
+    def threat(self) -> int:
         """int: Staging-area threat added each round while this location is active or in staging."""
         return self._threat
 

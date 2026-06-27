@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from src.cards import Hero, Ally, Enemy, Location
 
 
-def _name(card) -> str:
+def _name(card: object) -> str:
     n = card.name
     return n.name if hasattr(n, "name") else str(n)
 

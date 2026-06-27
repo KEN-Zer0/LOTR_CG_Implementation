@@ -1,10 +1,12 @@
+from enum import Enum
+
 from src.cards.base_card import BaseCard
 
 
 class ProgressObjective(BaseCard):
     """A card that tracks progress tokens and completes when required_progress is reached."""
 
-    def __init__(self, name, required_progress):
+    def __init__(self, name: Enum, required_progress: int) -> None:
         """Initialize with 0 progress.
 
         Args:
@@ -16,16 +18,16 @@ class ProgressObjective(BaseCard):
         self._progress = 0
 
     @property
-    def progress(self):
+    def progress(self) -> int:
         """int: Current number of progress tokens placed on this card."""
         return self._progress
 
     @property
-    def required_progress(self):
+    def required_progress(self) -> int:
         """int: Number of progress tokens needed to complete this objective."""
         return self._required_progress
 
-    def place_progress_token(self, tokens):
+    def place_progress_token(self, tokens: int) -> None:
         """Add progress tokens to this card.
 
         Args:

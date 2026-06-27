@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.limited.cards_list import Sphere
+
 from src.cards.creatures.player_creatures import PlayerCreature
 
 
@@ -6,14 +14,14 @@ class Ally(PlayerCreature):
 
     def __init__(
             self,
-            name,
-            attack,
-            defense,
-            max_hit_points,
-            willpower,
-            sphere_of_influence,
-            cost
-    ):
+            name: Enum,
+            attack: int,
+            defense: int,
+            max_hit_points: int,
+            willpower: int,
+            sphere_of_influence: Sphere,
+            cost: int
+    ) -> None:
         """Initialize ally with a resource cost required to play from hand.
 
         Args:
@@ -30,7 +38,7 @@ class Ally(PlayerCreature):
         self._cost = cost
 
     @property
-    def cost(self):
+    def cost(self) -> int:
         """int: Resource tokens required to play this ally from hand."""
         return self._cost
 
