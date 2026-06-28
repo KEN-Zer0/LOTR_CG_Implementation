@@ -114,3 +114,18 @@ class BaseAgent(ABC):
         Returns:
             Characters committed to this attack (empty to skip).
         """
+
+    def on_defense_resolved(
+        self, enemy: Enemy, defender: Hero | Ally, damage: int
+    ) -> None:
+        """Called after a defended enemy attack is resolved. Override to observe results."""
+
+    def on_undefended_resolved(
+        self, enemy: Enemy, hero: Hero, damage: int
+    ) -> None:
+        """Called after an undefended enemy attack is resolved. Override to observe results."""
+
+    def on_attack_resolved(
+        self, enemy: Enemy, attackers: list[Hero | Ally], damage: int, killed: bool
+    ) -> None:
+        """Called after the player's attack against an enemy is resolved. Override to observe results."""

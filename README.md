@@ -9,7 +9,7 @@ The simulator implements the full 7-phase round structure of the LOTR LCG, confi
 ## Current status
 
 - Core game loop, phases, card hierarchy, and agent system are implemented.
-- The current automated test suite is passing: 280 tests passed as of 2026-06-24.
+- The current automated test suite is passing: 363 tests, 95% coverage as of 2026-06-28.
 - The main remaining work is in advanced card rules and interaction mechanics, not in the basic single-player engine.
 
 ## Setup
@@ -123,6 +123,8 @@ python main.py              # ExpertAgent (default)
 python main.py expert       # ExpertAgent
 python main.py random       # RandomAgent
 python main.py alphabeta    # AlphaBetaAgent
+python main.py human        # HumanAgent — interactive play via keyboard
+python main.py human --log  # HumanAgent with verbose phase-by-phase logging
 ```
 
 ## Agent System
@@ -340,14 +342,59 @@ card = CARDS[Allies.Wandering_Took].copy()  # independent instance, safe to muta
 
 ## Tests
 
+The project uses a local `.venv` for development. Run tests with:
+
+```bash
+.venv/Scripts/python.exe -m pytest -vq        # Windows
+.venv/bin/python -m pytest -vq                 # Linux / macOS
+```
+
+Or if using the conda environment:
+
 ```bash
 conda activate lotr-cg-implementation
 python -m pytest -vq
 ```
 
-280 testów pokrywa klasy kart, wszystkie 7 faz, agentów i integrację Table/Game.
+363 tests cover card classes, all 7 phases, agents, logging, and Table/Game integration.
+
+### Coverage by module
+
+| Module | Cover |
+|--------|------:|
+| `agents/__init__`, `base_agent`, `expert_agent`, `random_agent`, `logging_agent` | 100% |
+| `agents/alpha_beta_agent` | 93% |
+| `agents/human_agent` | 96% |
+| `config/*` (all files) | 100% |
+| `src/cards/**` (all files) | 100% |
+| `src/game/game.py` | 100% |
+| `src/game/log_formatters.py` | 87% |
+| `src/game/logging_game.py` | 85% |
+| `src/game/phases/*` | 96–100% |
+| `src/logging/logger.py` | 100% |
+| `src/table/table.py` | 100% |
+| **TOTAL** | **95%** |
+
+The uncovered lines in `logging_game.py` are `run_round()` (integration-level, tested via game benchmarks) and a few unreachable branches in `logging_game.py:124` and `log_formatters.py` (defensive fallback paths).
+
+### Coverage
+
+Measure coverage locally with `pytest-cov`:
+
+```bash
+pip install pytest-cov
+python -m pytest --cov=src --cov=agents --cov=config --cov-report=term-missing -q
+```
+
+The `term-missing` report prints uncovered line numbers directly in the terminal. To generate an HTML report instead:
+
+```bash
+python -m pytest --cov=src --cov=agents --cov=config --cov-report=html -q
+# open htmlcov/index.html
+```
 
 ## Requirements
 
-- Python 3.11 (`environment.yml` — środowisko conda `lotr-cg-implementation`)
-- `pytest` (doinstaluj: `pip install pytest`)
+- Python 3.11 (`environment.yml` — conda environment `lotr-cg-implementation`)
+- `pytest` — included in the conda environment; or `pip install pytest` in `.venv`
+- `pytest-cov` — optional, for local coverage reports (`pip install pytest-cov`)
