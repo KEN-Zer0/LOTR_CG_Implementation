@@ -15,12 +15,15 @@ class PlanningPhase(Phase):
 
     def execute(self) -> None:
         """Play affordable Ally cards from hand until none remain or the player passes."""
+        shown = False
         while True:
             playable = self._get_playable_cards()
             if not playable:
-                self._choose_card(playable)
+                if not shown:
+                    self._choose_card(playable)
                 break
 
+            shown = True
             card = self._choose_card(playable)
             if card is None:
                 break
