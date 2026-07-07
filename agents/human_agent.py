@@ -185,8 +185,9 @@ class HumanAgent(BaseAgent):
         name_w   = max(len(_n(c.name))               for c in hand)
         sphere_w = max(len(_n(c.sphere_of_influence)) for c in hand)
         playable_ids = {id(c) for c in playable}
+        sorted_hand  = sorted(hand, key=lambda c: (0 if id(c) in playable_ids else 1, _n(c.name)))
         numbered: list[Ally] = []
-        for c in hand:
+        for c in sorted_hand:
             name   = _n(c.name).ljust(name_w)
             sphere = f"[{_n(c.sphere_of_influence)}]".ljust(sphere_w + 2)
             stats  = f"cost={c.cost}  wp={c.willpower}  atk={c.attack}  def={c.defense}"
