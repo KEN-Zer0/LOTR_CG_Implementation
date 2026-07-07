@@ -45,8 +45,12 @@ if args.log or args.logfile:
 else:
     game = Game(agent=agent)
 
-while not game.table.check_win_condition() and not game.table.check_lose_condition():
-    game.run_round()
+try:
+    while not game.table.check_win_condition() and not game.table.check_lose_condition():
+        game.run_round()
+except KeyboardInterrupt:
+    print("\nGra przerwana.")
+    raise SystemExit(0)
 
 is_victory = game.table.check_win_condition()
 if is_victory:
