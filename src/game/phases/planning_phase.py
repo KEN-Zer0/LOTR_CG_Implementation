@@ -18,6 +18,7 @@ class PlanningPhase(Phase):
         while True:
             playable = self._get_playable_cards()
             if not playable:
+                self._choose_card(playable)
                 break
 
             card = self._choose_card(playable)

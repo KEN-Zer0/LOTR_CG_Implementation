@@ -23,6 +23,8 @@ class RandomAgent(BaseAgent):
         self, game_state: Table, playable: list[Ally]
     ) -> Ally | None:
         # Include None so there is a chance to pass and end the phase early.
+        if not playable:
+            return None
         return random.choice(playable + [None])
 
     def choose_location(

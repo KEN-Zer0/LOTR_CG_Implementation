@@ -189,9 +189,21 @@ class HumanAgent(BaseAgent):
                 print(f"    {row}")
         if not available:
             return []
+        threat = game_state.table_threat
+        auto = [e for e in available if e.engagement <= threat]
+        manual = [e for e in available if e.engagement > threat]
+        if auto:
+            print("  Will auto-engage:")
+            for row in _col_enemies(auto):
+                print(f"    {row}")
         print("  Optional engagement:")
-        for i, row in enumerate(_col_enemies(available), 1):
-            print(f"    {i:>2}. {row}")
+        numbered: list[Enemy] = []
+        for e in available:
+            marker = " [auto]" if e.engagement <= threat else ""
+            n = len(numbered) + 1
+            row = _col_enemies([e])[0]
+            print(f"    {n:>2}. {row}{marker}")
+            numbered.append(e)
         indices = _pick_many("  Enemies to engage (comma-separated, or blank for none): ", len(available))
         chosen = [available[i] for i in indices]
         if chosen:
@@ -247,6 +259,7 @@ class HumanAgent(BaseAgent):
     ) -> list[Hero | Ally]:
         print(f"\n=== Combat: Attack {_n(enemy.name)}  def={enemy.defense}  hp={enemy.hit_points} ===")
         if not available:
+            print("  (no available attackers)")
             return []
         for i, row in enumerate(_col_chars(available), 1):
             print(f"  {i:>2}. {row}")
@@ -278,6 +291,9 @@ class HumanAgent(BaseAgent):
         else:
             hp = hero.hit_points
             print(f"  -> {_n(hero.name)} took {damage} undefended damage  (hp={hp}/{hero.max_hit_points})")
+
+    def on_no_heroes_for_undefended(self, enemy: Enemy) -> None:
+        print(f"  (all heroes dead — {_n(enemy.name)}'s attack skipped)")
 
     def on_attack_resolved(self, enemy: Enemy, attackers: list[Hero | Ally], damage: int, killed: bool) -> None:
         total_atk = sum(a.attack for a in attackers)

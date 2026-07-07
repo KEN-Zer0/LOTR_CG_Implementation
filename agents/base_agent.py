@@ -129,3 +129,6 @@ class BaseAgent(ABC):
         self, enemy: Enemy, attackers: list[Hero | Ally], damage: int, killed: bool
     ) -> None:
         """Called after the player's attack against an enemy is resolved. Override to observe results."""
+
+    def on_no_heroes_for_undefended(self, enemy: Enemy) -> None:
+        """Called when an undefended attack has no heroes to target. Override to observe."""

@@ -44,6 +44,7 @@ class CombatPhase(Phase):
             self._resolve_defended_attack(enemy, defender)
         else:
             if not self.table.player_heroes:
+                self.table.agent.on_no_heroes_for_undefended(enemy)
                 return
             hero = self._choose_undefended_target(enemy)
             self._resolve_undefended_attack(enemy, hero)
