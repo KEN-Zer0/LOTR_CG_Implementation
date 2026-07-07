@@ -168,6 +168,7 @@ class HumanAgent(BaseAgent):
 
     def __init__(self) -> None:
         _print_intro()
+        self._plan_queue: list = []
 
     # ── Quest ──────────────────────────────────────────────────────────────────
 
@@ -200,6 +201,14 @@ class HumanAgent(BaseAgent):
     def choose_card_to_play(
         self, game_state: Table, playable: list[Ally]
     ) -> Ally | None:
+        # Return next queued card (from a previous multi-select) if still affordable.
+        playable_ids = {id(c) for c in playable}
+        while self._plan_queue:
+            card = self._plan_queue.pop(0)
+            if id(card) in playable_ids:
+                print(f"  -> Playing: {_c(GREEN, _n(card.name))} (cost={card.cost})")
+                return card
+
         hand = game_state.player_hand if game_state.player_hand else playable
         if not hand:
             return None
@@ -211,8 +220,7 @@ class HumanAgent(BaseAgent):
         print(_header(YELLOW, f"Planning Phase  |  resources: {resources}"))
         name_w   = max(len(_n(c.name))               for c in hand)
         sphere_w = max(len(_n(c.sphere_of_influence)) for c in hand)
-        playable_ids = {id(c) for c in playable}
-        sorted_hand  = sorted(hand, key=lambda c: (0 if id(c) in playable_ids else 1, _n(c.name)))
+        sorted_hand = sorted(hand, key=lambda c: (0 if id(c) in playable_ids else 1, _n(c.name)))
         numbered: list[Ally] = []
         for c in sorted_hand:
             name   = _n(c.name).ljust(name_w)
@@ -233,12 +241,14 @@ class HumanAgent(BaseAgent):
         if not numbered:
             print(f"  {_c(DIM, '(no affordable cards — passing)')}")
             return None
-        print("  Wybierz karte do zagrania (0 = pas):")
-        idx = _pick_one(len(numbered))
-        if idx is None:
+        print("  Wybierz karty do zagrania (Enter = pas):")
+        indices = _pick_many(len(numbered))
+        if not indices:
             print("  -> Pass.")
             return None
-        card = numbered[idx]
+        chosen = [numbered[i] for i in indices]
+        self._plan_queue = chosen[1:]
+        card = chosen[0]
         print(f"  -> Playing: {_c(GREEN, _n(card.name))} (cost={card.cost})")
         return card
 
