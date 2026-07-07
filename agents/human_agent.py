@@ -52,8 +52,14 @@ def _col_chars(chars: list) -> list[str]:
     for c in chars:
         name   = _n(c.name).ljust(name_w)
         sphere = f"[{_n(c.sphere_of_influence)}]".ljust(sphere_w + 2)
-        hp     = f"{c.hit_points}/{c.max_hit_points}"
-        rows.append(f"{name} {sphere}  wp={c.willpower}  atk={c.attack}  def={c.defense}  hp={hp}")
+        hp     = _c(RED, f"{c.hit_points}/{c.max_hit_points}")
+        rows.append(
+            f"{name} {sphere}"
+            f"  wp={_c(CYAN, str(c.willpower))}"
+            f"  atk={c.attack}"
+            f"  def={_c(BLUE, str(c.defense))}"
+            f"  hp={hp}"
+        )
     return rows
 
 
@@ -190,13 +196,19 @@ class HumanAgent(BaseAgent):
         for c in sorted_hand:
             name   = _n(c.name).ljust(name_w)
             sphere = f"[{_n(c.sphere_of_influence)}]".ljust(sphere_w + 2)
-            stats  = f"cost={c.cost}  wp={c.willpower}  atk={c.attack}  def={c.defense}"
+            stats  = (
+                f"cost={_c(YELLOW, str(c.cost))}"
+                f"  wp={_c(CYAN, str(c.willpower))}"
+                f"  atk={c.attack}"
+                f"  def={_c(BLUE, str(c.defense))}"
+            )
             if id(c) in playable_ids:
                 n = len(numbered) + 1
-                print(f"  {n:>2}. {name} {sphere}  {stats}")
+                print(f"  {n:>2}. {_c(GREEN, name)} {sphere}  {stats}")
                 numbered.append(c)
             else:
-                print(f"  {DIM} -  {name} {sphere}  {stats}  (can't afford){R}")
+                cant = "(can't afford)"
+                print(f"  {DIM} -  {name} {sphere}  {stats}  {_c(RED, cant)}{R}")
         if not numbered:
             print(f"  {_c(DIM, '(no affordable cards — passing)')}")
             return None
