@@ -90,39 +90,59 @@ def _col_staging(cards: list) -> list[str]:
 
 # ── Input helpers ──────────────────────────────────────────────────────────────
 
-def _pick_one(prompt: str, max_idx: int) -> int | None:
+_HINT_ONE  = f"  {DIM}[numer  |  0 lub Enter = pomiń]{R}"
+_HINT_MANY = f"  {DIM}[numery po przecinku: 1,3  |  Enter = pomiń]{R}"
+
+
+def _pick_one(max_idx: int) -> int | None:
     """Return 0-based index of chosen item, or None if player enters 0 / empty."""
+    print(_HINT_ONE)
     while True:
-        raw = input(prompt).strip()
+        raw = input("  > ").strip()
         if raw in ("0", ""):
             return None
         try:
             i = int(raw)
             if 1 <= i <= max_idx:
                 return i - 1
-            print(f"  Enter a number between 1 and {max_idx}, or 0 to skip.")
+            print(f"  {DIM}Wpisz liczbę od 1 do {max_idx} lub 0 żeby pominąć.{R}")
         except ValueError:
-            print("  Invalid input — enter a number.")
+            print(f"  {DIM}Nieprawidłowy input — wpisz liczbę.{R}")
 
 
-def _pick_many(prompt: str, max_idx: int) -> list[int]:
-    """Return list of unique 0-based indices; empty list if player leaves blank."""
+def _pick_one_required(max_idx: int) -> int:
+    """Return 0-based index; 0/blank is not accepted — a choice is mandatory."""
+    print(f"  {DIM}[numer od 1 do {max_idx} — wymagany]{R}")
     while True:
-        raw = input(prompt).strip()
+        raw = input("  > ").strip()
+        try:
+            i = int(raw)
+            if 1 <= i <= max_idx:
+                return i - 1
+            print(f"  {DIM}Wpisz liczbę od 1 do {max_idx}.{R}")
+        except ValueError:
+            print(f"  {DIM}Nieprawidłowy input — wpisz liczbę.{R}")
+
+
+def _pick_many(max_idx: int) -> list[int]:
+    """Return list of unique 0-based indices; empty list if player leaves blank."""
+    print(_HINT_MANY)
+    while True:
+        raw = input("  > ").strip()
         if not raw:
             return []
         try:
             indices = [int(x.strip()) for x in raw.split(",") if x.strip()]
             if not all(1 <= i <= max_idx for i in indices):
-                print(f"  Enter numbers between 1 and {max_idx}, or leave blank to skip.")
+                print(f"  {DIM}Wpisz liczby od 1 do {max_idx} lub Enter żeby pominąć.{R}")
                 continue
             seen: set[int] = set()
             unique = [i for i in indices if not (i in seen or seen.add(i))]  # type: ignore[func-returns-value]
             if len(unique) != len(indices):
-                print("  Duplicates removed.")
+                print(f"  {DIM}Duplikaty usuniete.{R}")
             return [i - 1 for i in unique]
         except ValueError:
-            print("  Invalid input — enter comma-separated numbers.")
+            print(f"  {DIM}Nieprawidłowy input — wpisz liczby po przecinku.{R}")
 
 
 # ── One-time intro ─────────────────────────────────────────────────────────────
@@ -161,7 +181,8 @@ class HumanAgent(BaseAgent):
             return []
         for i, row in enumerate(_col_chars(available), 1):
             print(f"  {i:>2}. {row}")
-        indices = _pick_many("  Questers (comma-separated, or blank for none): ", len(available))
+        print("  Wybierz questujacych:")
+        indices = _pick_many(len(available))
         chosen = [available[i] for i in indices]
         if chosen:
             names    = ", ".join(_n(c.name) for c in chosen)
@@ -212,7 +233,8 @@ class HumanAgent(BaseAgent):
         if not numbered:
             print(f"  {_c(DIM, '(no affordable cards — passing)')}")
             return None
-        idx = _pick_one("  Card to play (0 to pass): ", len(numbered))
+        print("  Wybierz karte do zagrania (0 = pas):")
+        idx = _pick_one(len(numbered))
         if idx is None:
             print("  -> Pass.")
             return None
@@ -232,7 +254,8 @@ class HumanAgent(BaseAgent):
         for i, loc in enumerate(eligible, 1):
             name = _n(loc.name).ljust(name_w)
             print(f"  {i:>2}. {name}  threat={loc.threat}  progress={loc.progress}/{loc.required_progress}")
-        idx = _pick_one("  Location to travel to (0 to skip): ", len(eligible))
+        print("  Wybierz lokacje (0 = pomiń):")
+        idx = _pick_one(len(eligible))
         if idx is None:
             print("  -> Skip travel.")
             return None
@@ -275,7 +298,8 @@ class HumanAgent(BaseAgent):
             row = _col_enemies([e])[0]
             print(f"    {n:>2}. {row}{marker}")
             numbered.append(e)
-        indices = _pick_many("  Enemies to engage (comma-separated, or blank for none): ", len(available))
+        print("  Wybierz wrogów do angażowania:")
+        indices = _pick_many(len(available))
         chosen = [available[i] for i in indices]
         if chosen:
             names = ", ".join(_n(e.name) for e in chosen)
@@ -299,7 +323,8 @@ class HumanAgent(BaseAgent):
             dmg = max(0, enemy.attack - c.defense)
             dmg_col = _c(RED, str(dmg)) if dmg >= c.hit_points else _c(YELLOW, str(dmg)) if dmg > 0 else _c(GREEN, "0")
             print(f"  {i:>2}. {row}  -> dmg: {dmg_col}")
-        idx = _pick_one("  Defender (0 for undefended): ", len(available))
+        print("  Wybierz obrońcę (0 = bez obrony):")
+        idx = _pick_one(len(available))
         if idx is None:
             print(f"  -> {_c(YELLOW, 'Undefended.')}")
             return None
@@ -319,17 +344,11 @@ class HumanAgent(BaseAgent):
             name    = _n(h.name).ljust(name_w)
             hp_col  = _c(RED, f"{h.hit_points}/{h.max_hit_points}") if h.hit_points <= enemy.attack else f"{h.hit_points}/{h.max_hit_points}"
             print(f"  {i:>2}. {name}  hp={hp_col}")
-        while True:
-            raw = input("  Who takes the hit? ").strip()
-            try:
-                i = int(raw)
-                if 1 <= i <= len(heroes):
-                    target = heroes[i - 1]
-                    print(f"  -> {_n(target.name)} takes the hit.")
-                    return target
-            except ValueError:
-                pass
-            print(f"  Enter a number between 1 and {len(heroes)}.")
+        print("  Kto przyjmuje cios:")
+        idx = _pick_one_required(len(heroes))
+        target = heroes[idx]
+        print(f"  -> {_n(target.name)} przyjmuje cios.")
+        return target
 
     # ── Combat: attack ─────────────────────────────────────────────────────────
 
@@ -342,7 +361,8 @@ class HumanAgent(BaseAgent):
             return []
         for i, row in enumerate(_col_chars(available), 1):
             print(f"  {i:>2}. {row}")
-        indices = _pick_many("  Attackers (comma-separated, or blank to skip): ", len(available))
+        print("  Wybierz atakujacych:")
+        indices = _pick_many(len(available))
         chosen = [available[i] for i in indices]
         if chosen:
             names = ", ".join(_n(c.name) for c in chosen)
