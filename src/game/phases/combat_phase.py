@@ -44,6 +44,7 @@ class CombatPhase(Phase):
             self._resolve_defended_attack(enemy, defender)
         else:
             if not self.table.player_heroes:
+                self.table.agent.on_no_heroes_for_undefended(enemy)
                 return
             hero = self._choose_undefended_target(enemy)
             self._resolve_undefended_attack(enemy, hero)
@@ -61,12 +62,14 @@ class CombatPhase(Phase):
                     self.table.player_board.remove(defender)
                 else:
                     self.table.player_heroes.remove(defender)
+        self.table.agent.on_defense_resolved(enemy, defender, damage)
 
     def _resolve_undefended_attack(self, enemy: Enemy, hero: Hero) -> None:
         """Deals full unblocked enemy attack directly to a hero."""
         hero.take_damage(enemy.attack)
         if hero.is_dead():
             self.table.player_heroes.remove(hero)
+        self.table.agent.on_undefended_resolved(enemy, hero, enemy.attack)
 
     # --- Defender selection ---
 
@@ -117,9 +120,11 @@ class CombatPhase(Phase):
         if damage > 0:
             enemy.take_damage(damage)
 
-        if enemy.is_dead():
+        killed = enemy.is_dead()
+        if killed:
             self.table.encounter_engagement.remove(enemy)
             self.table.encounter_discard.append(enemy)
+        self.table.agent.on_attack_resolved(enemy, attackers, damage, killed)
 
     # --- Attacker selection ---
 

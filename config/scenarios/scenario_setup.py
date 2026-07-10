@@ -13,7 +13,14 @@ The apply_setup() function is the only place that knows how to execute
 these declarations against a live Table — scenario modules stay pure data.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.table import Table
 
 
 @dataclass
@@ -27,10 +34,10 @@ class ScenarioSetup:
     """
 
     opening_hand_size: int = 6
-    initial_staging: list = field(default_factory=list)
+    initial_staging: list[Enum] = field(default_factory=list)
 
 
-def apply_setup(table, setup: ScenarioSetup) -> None:
+def apply_setup(table: Table, setup: ScenarioSetup) -> None:
     """Apply a ScenarioSetup to a live Table.
 
     Draws the opening hand and moves initial staging cards out of the

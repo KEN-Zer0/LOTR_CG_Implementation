@@ -4,10 +4,12 @@ CARDS maps every card enum to its canonical instance.
 Use .copy() when creating deck lists — never mutate entries here.
 """
 
+from enum import Enum
+
 from config.limited.cards_list import *
 from src.cards import Hero, Ally, Enemy, Location, Quest
 
-CARDS = {
+CARDS: dict[Enum, Hero | Ally | Enemy | Location | Quest] = {
     # Heroes
     Heroes.Eowyn:   Hero(Heroes.Eowyn,   attack=1, defense=1, max_hit_points=3, willpower=4, sphere_of_influence=Sphere.Spirit,  threat=9),
     Heroes.Eleanor: Hero(Heroes.Eleanor, attack=1, defense=2, max_hit_points=3, willpower=1, sphere_of_influence=Sphere.Spirit,  threat=7),

@@ -13,13 +13,17 @@ class PlanningPhase(Phase):
     remain or the player chooses to pass.
     """
 
-    def execute(self):
+    def execute(self) -> None:
         """Play affordable Ally cards from hand until none remain or the player passes."""
+        shown = False
         while True:
             playable = self._get_playable_cards()
             if not playable:
+                if not shown:
+                    self._choose_card(playable)
                 break
 
+            shown = True
             card = self._choose_card(playable)
             if card is None:
                 break
@@ -37,7 +41,7 @@ class PlanningPhase(Phase):
             if self._resources_for_sphere(card.sphere_of_influence) >= card.cost
         ]
 
-    def _heroes_for_sphere(self, sphere) -> list:
+    def _heroes_for_sphere(self, sphere: Sphere) -> list[Hero]:
         """Return heroes that can contribute resources for a given sphere.
 
         Neutral cards can be paid by any hero regardless of sphere.
@@ -52,7 +56,7 @@ class PlanningPhase(Phase):
             return list(self.table.player_heroes)
         return [h for h in self.table.player_heroes if h.sphere_of_influence == sphere]
 
-    def _resources_for_sphere(self, sphere) -> int:
+    def _resources_for_sphere(self, sphere: Sphere) -> int:
         """Return the sum of resource pools for heroes eligible to pay for a given sphere.
 
         Args:

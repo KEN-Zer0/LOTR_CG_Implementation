@@ -1,6 +1,6 @@
 import argparse
 from src.game.game import Game
-from agents import RandomAgent, ExpertAgent, AlphaBetaAgent
+from agents import RandomAgent, ExpertAgent, AlphaBetaAgent, HumanAgent
 
 VICTORY_MSG   = "Victory! All quests completed."
 THREAT_DEFEAT = "Defeat! Threat reached 50."
@@ -10,6 +10,7 @@ AGENTS = {
     "expert": ExpertAgent,
     "random": RandomAgent,
     "alphabeta": AlphaBetaAgent,
+    "human": HumanAgent,
 }
 
 parser = argparse.ArgumentParser(description="LOTR Card Game")
@@ -44,8 +45,12 @@ if args.log or args.logfile:
 else:
     game = Game(agent=agent)
 
-while not game.table.check_win_condition() and not game.table.check_lose_condition():
-    game.run_round()
+try:
+    while not game.table.check_win_condition() and not game.table.check_lose_condition():
+        game.run_round()
+except KeyboardInterrupt:
+    print("\nGra przerwana.")
+    raise SystemExit(0)
 
 is_victory = game.table.check_win_condition()
 if is_victory:

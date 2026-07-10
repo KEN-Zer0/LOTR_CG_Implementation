@@ -1,10 +1,13 @@
 from collections import defaultdict
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
+
+if TYPE_CHECKING:
+    from src.cards import Enemy, Location
 
 from config.log_constants import NEW_MARKER, BULLET, CardState
 
 
-def _name(x) -> str:
+def _name(x: object) -> str:
     """Convert a card object, Enum value, or fallback string to a display name."""
     if isinstance(x, str):
         return x
@@ -108,7 +111,7 @@ def _sphere_totals(heroes: list[_HeroSnap]) -> dict[str, int]:
     return dict(result)
 
 
-def _fmt_staging_card_stats(card) -> str:
+def _fmt_staging_card_stats(card: "Enemy | Location") -> str:
     if hasattr(card, "engagement"):
         return f"atk={card.attack} def={card.defense} hp={card.hit_points} threat={card.threat} engagement_cost={card.engagement}"
     if hasattr(card, "required_progress"):

@@ -1,10 +1,11 @@
 from abc import ABC
+from enum import Enum
 
 
 class BaseCard(ABC):
     """Base class for all card types."""
 
-    def __init__(self, name):
+    def __init__(self, name: Enum) -> None:
         """Initialize the card.
 
         Args:
@@ -13,7 +14,7 @@ class BaseCard(ABC):
         self._name = name
 
     @property
-    def name(self):
+    def name(self) -> Enum | str:
         """Return the card's enum identifier, or the string "Name empty" if unset.
 
         Returns:

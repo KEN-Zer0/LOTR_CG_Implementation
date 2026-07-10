@@ -1,3 +1,5 @@
+from enum import Enum
+
 from src.cards.creatures.base_creature import Creature
 
 
@@ -6,13 +8,13 @@ class Enemy(Creature):
 
     def __init__(
             self,
-            name,
-            attack,
-            defense,
-            max_hit_points,
-            engagement,
-            threat
-    ):
+            name: Enum,
+            attack: int,
+            defense: int,
+            max_hit_points: int,
+            engagement: int,
+            threat: int
+    ) -> None:
         """Initialize the enemy.
 
         Args:
@@ -29,12 +31,12 @@ class Enemy(Creature):
         self._threat = threat
 
     @property
-    def engagement(self):
+    def engagement(self) -> int:
         """int: Table-threat value at or above which this enemy automatically engages the player."""
         return self._engagement
 
     @property
-    def threat(self):
+    def threat(self) -> int:
         """int: Staging-area threat contribution while the enemy remains unengaged."""
         return self._threat
 

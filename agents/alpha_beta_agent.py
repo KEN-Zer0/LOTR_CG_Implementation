@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from itertools import chain, combinations
 from math import inf
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from agents.base_agent import BaseAgent
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from src.cards import Hero, Ally, Enemy, Location
 
 
-def _power_set(lst: list) -> chain:
+def _power_set(lst: list[Any]) -> chain[tuple[Any, ...]]:
     return chain.from_iterable(combinations(lst, r) for r in range(len(lst) + 1))
 
 
@@ -65,8 +65,8 @@ class AlphaBetaAgent(BaseAgent):
     # ── Questing: 2-ply alpha-beta minimax ──────────────────────────────────
 
     def choose_questing_characters(
-        self, game_state: Table, available: list
-    ) -> list:
+        self, game_state: Table, available: list[Hero | Ally]
+    ) -> list[Hero | Ally]:
         staging_threat = sum(c.threat for c in game_state.encounter_staging)
         base_score = self._evaluate(game_state)
         # Most-dangerous cards first → MIN finds low beta sooner → more alpha cuts
@@ -82,8 +82,8 @@ class AlphaBetaAgent(BaseAgent):
         return best
 
     def _min_encounter(
-        self, state: Table, questers: tuple, staging_threat: int,
-        alpha: float, base_score: float, deck: list
+        self, state: Table, questers: tuple[Hero | Ally, ...], staging_threat: int,
+        alpha: float, base_score: float, deck: list[Enemy | Location]
     ) -> float:
         """MIN node: worst-case encounter reveal after questers commit."""
         quest_score = base_score + self._quest_delta(state, questers, staging_threat)
@@ -103,14 +103,14 @@ class AlphaBetaAgent(BaseAgent):
                 return beta
         return beta
 
-    def _card_danger(self, state: Table, card) -> float:
+    def _card_danger(self, state: Table, card: Enemy | Location) -> float:
         """Danger level of revealing this card; lower = more dangerous, so sort ascending."""
         is_enemy = hasattr(card, 'engagement')
         if is_enemy and card.engagement <= state.table_threat:
             return -(card.attack * 3.0 + card.hit_points)
         return -(card.threat * 2.0)
 
-    def _reveal_delta(self, state: Table, card, fighters: list) -> float:
+    def _reveal_delta(self, state: Table, card: Enemy | Location, fighters: list[Hero | Ally]) -> float:
         """Score impact of revealing this encounter card.
 
         Enemies that auto-engage (engagement <= table_threat) are evaluated
@@ -123,7 +123,7 @@ class AlphaBetaAgent(BaseAgent):
         return self._combat_estimate(fighters, [card])
 
     def _quest_delta(
-        self, state: Table, questers: tuple, staging_threat: int
+        self, state: Table, questers: tuple[Hero | Ally, ...], staging_threat: int
     ) -> float:
         """Evaluation delta from committing these characters to the quest (no deepcopy)."""
         net = sum(c.willpower for c in questers) - staging_threat
@@ -175,7 +175,7 @@ class AlphaBetaAgent(BaseAgent):
 
         return delta
 
-    def _combat_estimate(self, fighters: list, enemies: list) -> float:
+    def _combat_estimate(self, fighters: list[Hero | Ally], enemies: list[Enemy]) -> float:
         """Expected combat score with fighters against given enemies."""
         remaining_atk = sum(c.attack for c in fighters)
         defenders = sorted(fighters, key=lambda c: c.defense, reverse=True)
@@ -195,7 +195,7 @@ class AlphaBetaAgent(BaseAgent):
     # ── Planning ─────────────────────────────────────────────────────────────
 
     def choose_card_to_play(
-        self, game_state: Table, playable: list
+        self, game_state: Table, playable: list[Ally]
     ) -> Ally | None:
         if not playable:
             return None
@@ -204,7 +204,7 @@ class AlphaBetaAgent(BaseAgent):
     # ── Travel ───────────────────────────────────────────────────────────────
 
     def choose_location(
-        self, game_state: Table, eligible: list
+        self, game_state: Table, eligible: list[Location]
     ) -> Location | None:
         if not eligible:
             return None
@@ -213,8 +213,8 @@ class AlphaBetaAgent(BaseAgent):
     # ── Encounter ────────────────────────────────────────────────────────────
 
     def choose_optional_engagement(
-        self, game_state: Table, available: list
-    ) -> list:
+        self, game_state: Table, available: list[Enemy]
+    ) -> list[Enemy]:
         ready = [c for c in game_state.player_heroes + game_state.player_board if not c.exhausted]
         total_atk = sum(c.attack for c in ready)
         to_engage = []
@@ -227,7 +227,7 @@ class AlphaBetaAgent(BaseAgent):
     # ── Combat ───────────────────────────────────────────────────────────────
 
     def choose_defender(
-        self, game_state: Table, enemy, available: list
+        self, game_state: Table, enemy: Enemy, available: list[Hero | Ally]
     ) -> Hero | Ally | None:
         if not available:
             return None
@@ -250,13 +250,13 @@ class AlphaBetaAgent(BaseAgent):
         return best_defender
 
     def choose_undefended_target(
-        self, game_state: Table, enemy
+        self, game_state: Table, enemy: Enemy
     ) -> Hero:
         return max(game_state.player_heroes, key=lambda h: h.hit_points)
 
     def choose_attackers(
-        self, game_state: Table, enemy, available: list
-    ) -> list:
+        self, game_state: Table, enemy: Enemy, available: list[Hero | Ally]
+    ) -> list[Hero | Ally]:
         if not available:
             return []
         by_attack = sorted(available, key=lambda c: c.attack, reverse=True)

@@ -6,14 +6,15 @@ Card stats live in cards_registry.py — do not duplicate them here.
 
 from config.limited.cards_list import Heroes, Allies, Enemies, Locations, Quests, Scenario
 from config.limited.cards_registry import CARDS
+from src.cards import Hero, Ally, Enemy, Location, Quest
 
-hero_pool = [
+hero_pool: list[Hero] = [
     CARDS[Heroes.Eowyn].copy(),
     CARDS[Heroes.Eleanor].copy(),
     CARDS[Heroes.Thalin].copy(),
 ]
 
-encounter_deck = [
+encounter_deck: list[Enemy | Location] = [
     CARDS[Enemies.Dol_Guldur_Orcs].copy(),
     CARDS[Enemies.Chieftan_Ufthak].copy(),
     CARDS[Enemies.Dol_Guldur_Beastmaster].copy(),
@@ -31,7 +32,7 @@ encounter_deck = [
     CARDS[Locations.Mountains_of_Mirkwood].copy(),
 ]
 
-player_deck = [
+player_deck: list[Ally] = [
     CARDS[Allies.Wandering_Took].copy(),
     CARDS[Allies.Lorien_Guide].copy(),
     CARDS[Allies.Northern_Tracker].copy(),
@@ -42,7 +43,7 @@ player_deck = [
     CARDS[Allies.Gandalf].copy(),
 ]
 
-quest_deck = [
+quest_deck: list[Quest] = [
     CARDS[Quests.Flies_and_Spiders].copy(),
     CARDS[Quests.A_fork_in_the_road].copy(),
     CARDS[Quests.Beorns_Path].copy(),

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from src.cards.base_card import BaseCard
 
 
@@ -6,11 +8,11 @@ class Creature(BaseCard):
 
     def __init__(
             self,
-            name,
+            name: Enum,
             attack: int,
             defense: int,
             max_hit_points: int
-    ):
+    ) -> None:
         """Initialize combat stats; hit_points starts equal to max_hit_points.
 
         Args:
@@ -27,26 +29,26 @@ class Creature(BaseCard):
         self._hit_points = max_hit_points
 
     @property
-    def attack(self):
+    def attack(self) -> int:
         """int: Damage dealt per combat attack."""
         return self._attack
 
     @property
-    def defense(self):
+    def defense(self) -> int:
         """int: Damage absorbed before applying net damage to hit_points."""
         return self._defense
 
     @property
-    def max_hit_points(self):
+    def max_hit_points(self) -> int:
         """int: Maximum hit points; hit_points is clamped to this ceiling."""
         return self._max_hit_points
 
     @property
-    def hit_points(self):
+    def hit_points(self) -> int:
         """int: Current remaining hit points; floored at 0."""
         return self._hit_points
 
-    def is_dead(self):
+    def is_dead(self) -> bool:
         """Check whether the creature has been defeated.
 
         Returns:
@@ -62,7 +64,7 @@ class Creature(BaseCard):
         """
         self.change_hp(-damage)
 
-    def change_hp(self, delta_hp):
+    def change_hp(self, delta_hp: int) -> None:
         """Add delta_hp to hit_points, clamped to [0, max_hit_points].
 
         Args:

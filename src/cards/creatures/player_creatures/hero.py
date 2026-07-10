@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from config.limited.cards_list import Sphere
+
 from src.cards.creatures.player_creatures import PlayerCreature
 
 
@@ -6,14 +14,14 @@ class Hero(PlayerCreature):
 
     def __init__(
             self,
-            name,
-            attack,
-            defense,
-            max_hit_points,
-            willpower,
-            sphere_of_influence,
-            threat
-    ):
+            name: Enum,
+            attack: int,
+            defense: int,
+            max_hit_points: int,
+            willpower: int,
+            sphere_of_influence: Sphere,
+            threat: int
+    ) -> None:
         """Initialize hero; resource_pool starts at 0.
 
         Args:
@@ -31,16 +39,16 @@ class Hero(PlayerCreature):
         self._resource_pool = 0
 
     @property
-    def threat(self):
+    def threat(self) -> int:
         """int: Starting-threat contribution added to the player's threat total at game start."""
         return self._threat
 
     @property
-    def resource_pool(self):
+    def resource_pool(self) -> int:
         """int: Current number of resource tokens available for paying card costs."""
         return self._resource_pool
 
-    def change_resource_pool(self, delta):
+    def change_resource_pool(self, delta: int) -> None:
         """Add delta to resource_pool, floored at 0.
 
         Args:
@@ -51,7 +59,7 @@ class Hero(PlayerCreature):
         if self._resource_pool < 0:
             self._resource_pool = 0
 
-    def add_resource_token(self):
+    def add_resource_token(self) -> None:
         """Increase resource_pool by 1 (shortcut for change_resource_pool(1))."""
         self._resource_pool += 1
 

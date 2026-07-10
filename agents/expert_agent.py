@@ -31,6 +31,8 @@ class ExpertAgent(BaseAgent):
     def choose_card_to_play(
         self, game_state: Table, playable: list[Ally]
     ) -> Ally | None:
+        if not playable:
+            return None
         return min(playable, key=lambda card: card.cost)
 
     def choose_location(
